@@ -90,7 +90,7 @@ enum WeChatPay {
         req.package = params.package
         req.sign = params.sign
 
-        WXApi.sendReq(req) { ok in
+        WXApi.send(req) { ok in
             DispatchQueue.main.async {
                 completion(ok, ok ? "" : "微信没有接受这次支付请求")
             }
