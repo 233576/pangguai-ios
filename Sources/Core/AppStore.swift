@@ -723,9 +723,9 @@ final class AppStore: ObservableObject {
         orders.first { $0.isRunning(now: now) }
     }
 
-    /// 最近一笔已支付/进行中的订单，倒计时结束后用来显示「洗好了」。
+    /// 最近一笔已支付的订单，倒计时结束后用来显示「洗好了」。
     var latestPaidOrder: PGOrder? {
-        orders.first { $0.status == 1 || $0.status == 2 }
+        orders.first { $0.isPaid }
     }
 
     func startClock() {
@@ -749,8 +749,10 @@ final class AppStore: ObservableObject {
 
     /// 倒计时走完的那一下：震动 + 记一条日志，只触发一次。
     private func checkFinish() {
-        for order in orders where order.status == 1 || order.status == 2 {
+        for order in orders where order.isPaid {
             guard let end = order.endsAt, end <= now else { continue }
+            // 只对最近一天的单子响一次，避免打开 App 时被历史订单震到。
+            guard now.timeIntervalSince(end) < 24 * 3600 else { continue }
             let key = order.id.isEmpty ? order.orderNo : order.id
             guard !finishedOrderIds.contains(key) else { continue }
             finishedOrderIds.insert(key)
