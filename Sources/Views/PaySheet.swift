@@ -342,15 +342,29 @@ struct PaySheet: View {
         }
     }
 
-    /// 支付宝 / 微信切换。切换会用同一个订单号重新取支付串，不会多建订单。
+    /// 服务端说这台机器开了哪些渠道，就只列哪些；查不到时退回支付宝 / 微信。
+    /// 切换会用同一个订单号重新取支付串，不会多建订单。
     private var payTypePicker: some View {
-        HStack(spacing: 10) {
-            option(title: "支付宝", detail: "扫码 / 跳转", type: PGProtocol.payTypeAlipay)
-            option(title: "微信支付", detail: "扫一扫付款", type: PGProtocol.payTypeWeChat)
+        let options = store.payOptions.isEmpty
+            ? [PayOption(type: PGProtocol.payTypeAlipay, name: "支付宝", isDefault: true),
+               PayOption(type: PGProtocol.payTypeWeChat, name: "微信支付", isDefault: false)]
+            : store.payOptions
+        return VStack(spacing: 8) {
+            HStack(spacing: 10) {
+                ForEach(options.prefix(3)) { option in
+                    chip(title: option.title, detail: option.detail, type: option.type)
+                }
+            }
+            if options.count == 1 && options[0].type == PGProtocol.payTypeWallet {
+                Text("这个网点只开了钱包余额支付。余额不够时请先在「胖乖生活」官方 App 充值，或者换一台机器。")
+                    .font(.system(size: 11))
+                    .foregroundStyle(Flat.orange)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+            }
         }
     }
 
-    private func option(title: String, detail: String, type: Int) -> some View {
+    private func chip(title: String, detail: String, type: Int) -> some View {
         let selected = payType == type
         return Button {
             guard !switching, payType != type else { return }
@@ -358,6 +372,12 @@ struct PaySheet: View {
                 switching = true
                 let error = await store.switchPayType(type)
                 switching = false
+                if store.pending == nil {
+                    // 钱包直接扣款成功，整个面板可以关掉
+                    payTypeOverride = nil
+                    dismiss()
+                    return
+                }
                 if store.pending?.payType == type {
                     payTypeOverride = type
                 }
@@ -367,17 +387,30 @@ struct PaySheet: View {
             VStack(spacing: 3) {
                 Text(title)
                     .font(.system(size: 14, weight: .semibold))
-                    .foregroundStyle(selected ? Flat.accent : Flat.textSecondary)
-                Text(detail)
-                    .font(.system(size: 11))
-                    .foregroundStyle(Flat.textTertiary)
+                    .foregroundStyle(selected ? tintColor(type) : Flat.textSecondary)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.8)
+                if !detail.isEmpty {
+                    Text(detail)
+                        .font(.system(size: 11))
+                        .foregroundStyle(Flat.textTertiary)
+                        .lineLimit(1)
+                }
             }
             .frame(maxWidth: .infinity)
             .padding(.vertical, 10)
         }
         .buttonStyle(.plain)
-        .flatPill(selected: selected, tint: type == PGProtocol.payTypeWeChat ? Flat.green : Flat.accent)
+        .flatPill(selected: selected, tint: tintColor(type))
         .disabled(switching)
+    }
+
+    private func tintColor(_ type: Int) -> Color {
+        switch type {
+        case PGProtocol.payTypeWeChat: return Flat.green
+        case PGProtocol.payTypeWallet: return Flat.orange
+        default: return Flat.accent
+        }
     }
 
     private func row(_ title: String, _ value: String) -> some View {
