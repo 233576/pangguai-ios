@@ -12,7 +12,7 @@
 | 扫码 / 手填机器码解析设备（`/goods/scan/v2`） | 智慧笑联等第三方小程序跳转 |
 | 设备详情与套餐（`/goods/normal/details`、`/goods/normal/skus`） | 支付宝 SDK 集成（改用二维码） |
 | 下单（`/trade/create`）+ 取支付串（`/pay/unify/prePay`） | 钱包充值、会员开通 |
-| 应用内二维码扫码付款 + 拉起支付宝 | 消息推送、多端同步 |
+| 应用内二维码扫码付款 + 拉起支付宝 / 微信 + 换渠道 | 消息推送、多端同步 |
 | 支付结果查询（`/order/pay_status`）、订单列表、撤销（`/order/cancel`） | 插件系统 |
 
 ## 协议链路
@@ -42,21 +42,32 @@ Content-Type: application/x-www-form-urlencoded;charset=UTF-8
    `promotions=[{"assetId":"0","oldPromotionId":"3482","orgId":"<orgId>","promotionId":"0","promotionType":"4"}]`
    `items=[{"amount":"1","goodsId":"<goodsId>","num":"1","skuId":"<skuId>","soldType":"1"}]`
    → `data.orderId`（就是 orderNo）
-9. `POST /pay/unify/prePay` — `orderNo`、`payType=13` → `data.prepayParam`（支付宝 orderString）
+9. `POST /pay/unify/prePay` — `orderNo`、`payType`（13 支付宝 / 32 微信）→ `data.prepayParam`
 10. `POST /order/pay_status` — `orderNo`、`payType` → `data` 布尔
 11. `POST /order/list` — `page`、`pageSize`、`orderStatus=""`
 12. `POST /order/cancel` — `orderId`
 
 ### 扫码支付怎么做的
 
-不集成支付宝 SDK。`prepayParam` 是标准 orderString，App 把它包成官方收银台入口：
+不集成任何支付 SDK。`prepayParam` 是各家自己的支付串，App 把它包成官方入口：
+
+**支付宝**（orderString）
 
 ```
 alipays://platformapi/startapp?appId=20000125&orderSuffix=<urlencode(prepayParam)>
 ```
 
-- 用 `CIFilter.qrCodeGenerator` 画成二维码，另一台手机用支付宝「扫一扫」即可付款；
-- 也可以点「打开支付宝付款」，直接 `UIApplication.open` 拉起；
+**微信**（`prepayParam` 通常是 JSON 或 `weixin://wxpay/bizpayurl?...` 链接）
+
+- 若能取出 `code_url` / `mweb_url` / `h5_url` 之类的真实链接，直接把它当二维码内容；
+- 若是 App 支付参数（含 `prepayid` / `partnerid` / `package`），只能拉起微信内置收银台，跨 App 拉起常被系统挡下；
+- 所以微信这条路的稳妥做法是**用另一台手机扫二维码**，或点「复制支付链接」自己粘贴。
+
+通用：
+
+- 用 `CIFilter.qrCodeGenerator` 画成二维码，另一台手机用支付宝 / 微信「扫一扫」付款；
+- 支付面板里可以随时**换渠道**（支付宝 ↔ 微信），底层用同一个 `orderId` 重新 `prePay`，订单号不变；
+- 「打开支付宝 / 打开微信」走 `UIApplication.open`；iOS 对 `alipays://`、`weixin://` 的跨 App 跳转不一定放行，放行失败会提示改用扫码或复制链接；
 - 付完点「我付好了」，调 `/order/pay_status` 确认，成功后清掉本地挂单。
 
 ### 几个实测坑
@@ -82,14 +93,14 @@ pangguai-ios/
 │   │   ├── Keychain.swift          token 存放
 │   │   ├── Models.swift            用户 / 设备 / 套餐 / 订单 / 挂单
 │   │   ├── PGClient.swift          全部接口
-│   │   └── PGProtocol.swift        常量、签名、支付宝 scheme、响应包装
+│   │   └── PGProtocol.swift        常量、签名、支付 scheme、响应包装
 │   └── Views/
 │       ├── AppShell.swift          底部悬浮胶囊导航
 │       ├── FlatTheme.swift         扁平色板与组件
 │       ├── LaundryView.swift       洗衣主页
 │       ├── LoginSheet.swift        验证码登录
 │       ├── ScanSheet.swift         AVFoundation 扫码 + 手填
-│       ├── PaySheet.swift          二维码 / 拉起支付宝 / 查支付
+│       ├── PaySheet.swift          二维码 / 拉起支付宝或微信 / 换渠道 / 查支付
 │       ├── OrdersView.swift        订单与撤销
 │       ├── LogView.swift           请求日志
 │       └── SettingsView.swift      账号、支付方式、自动检测、接口信息
@@ -125,7 +136,7 @@ bash scripts/build-ipa.sh          # 产出 dist/Pangguai-unsigned.ipa
 ## 已知限制
 
 - 只实现洗衣机，其它品类接口没有接。
-- 支付宝 SDK 未集成，所以「付完自动回跳」不存在，需要手动点「我付好了」。
+- 支付宝 / 微信 SDK 都未集成，所以「付完自动回跳」不存在，需要手动点「我付好了」。
 - iOS 后台不能常驻，守护只在 App 前台时生效。
 - App 用了这三个开源项目的协议资料：`Yunanriv-hub/Cumpus`、`Night-stars-1/wash`、`Baito-84170/baotuquan-light`。
 
