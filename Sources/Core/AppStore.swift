@@ -436,11 +436,31 @@ final class AppStore: ObservableObject {
         let prepay = await client.prePay(orderNo: current.orderId, payType: current.payType)
         busyText = ""
         guard prepay.ok, let data = prepay.dataObject else {
-            errorMessage = prepay.message
+            errorMessage = prepay.friendlyMessage
             return
         }
         pending?.prepayParam = data.text("prepayParam")
         persistPending()
+    }
+
+    /// 在待支付面板里切换支付宝 / 微信：拿同一个订单号重新取一次支付串。
+    func switchPayType(_ type: Int) async {
+        guard var current = pending else { return }
+        guard current.payType != type else { return }
+        busyText = "切换为\(PGProtocol.payTitle(type))…"
+        let prepay = await client.prePay(orderNo: current.orderId, payType: type)
+        busyText = ""
+        guard prepay.ok else {
+            log("切换支付方式失败 → code=\(prepay.code) \(prepay.message)")
+            errorMessage = "切换失败：\(prepay.friendlyMessage)"
+            return
+        }
+        let data = prepay.dataObject ?? [:]
+        current.payType = type
+        current.prepayParam = data.text("prepayParam")
+        pending = current
+        persistPending()
+        log("支付方式切换为 \(PGProtocol.payTitle(type))，支付串 \(current.prepayParam.count) 字符")
     }
 
     /// 查这笔单付了没；已付就把本地挂单清掉。
