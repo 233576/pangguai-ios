@@ -176,7 +176,7 @@ struct PayOption: Identifiable, Hashable {
 struct Settings: Codable, Equatable {
     var lastPhone: String = ""
     var autoRefresh: Bool = true
-    var payType: Int = PGProtocol.payTypeWallet
+    var payType: Int = PGProtocol.payTypeWeChat
 
     init() {}
 
@@ -184,6 +184,6 @@ struct Settings: Codable, Equatable {
         let c = try decoder.container(keyedBy: CodingKeys.self)
         lastPhone = (try? c.decode(String.self, forKey: .lastPhone)) ?? ""
         autoRefresh = (try? c.decode(Bool.self, forKey: .autoRefresh)) ?? true
-        payType = (try? c.decode(Int.self, forKey: .payType)) ?? PGProtocol.payTypeWallet
+        payType = (try? c.decode(Int.self, forKey: .payType)) ?? PGProtocol.payTypeWeChat
     }
 }
