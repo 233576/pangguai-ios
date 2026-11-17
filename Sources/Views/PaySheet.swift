@@ -46,7 +46,7 @@ struct QRCodeView: View {
     }
 }
 
-/// 待支付面板：扫码付款，或者直接拉起支付宝。
+/// 待支付面板：扫码付款，或者直接拉起支付宝 / 微信。
 struct PaySheet: View {
     @EnvironmentObject private var store: AppStore
     @Environment(\.dismiss) private var dismiss
@@ -55,10 +55,21 @@ struct PaySheet: View {
 
     @State private var checking = false
     @State private var cancelling = false
+    @State private var payTypeOverride: Int?
+    @State private var switching = false
+
+    /// 以 store 里的挂单为准（切换支付方式后 prepayParam / payType 都会变）。
+    private var current: PendingPayment { store.pending ?? payment }
+
+    private var payType: Int { payTypeOverride ?? current.payType }
+
+    private var isWeChat: Bool { payType == PGProtocol.payTypeWeChat }
 
     private var qrText: String {
-        PGProtocol.qrContent(for: payment.prepayParam)
+        PGProtocol.qrContent(for: current.prepayParam, payType: payType)
     }
+
+    private var payLabel: String { PGProtocol.payTitle(payType) }
 
     var body: some View {
         NavigationStack {
@@ -68,24 +79,28 @@ struct PaySheet: View {
                 ScrollView {
                     VStack(spacing: 16) {
                         VStack(spacing: 6) {
-                            Text(payment.price.isEmpty ? "待支付" : "¥\(payment.price)")
+                            Text(current.price.isEmpty ? "待支付" : "¥\(current.price)")
                                 .font(.system(size: 30, weight: .bold, design: .rounded))
                                 .foregroundStyle(Flat.textPrimary)
-                            Text(payment.machineName.isEmpty ? payment.orderId : payment.machineName)
+                            Text(current.machineName.isEmpty ? current.orderId : current.machineName)
                                 .font(.system(size: 14, weight: .medium))
                                 .foregroundStyle(Flat.textSecondary)
-                            if !payment.skuName.isEmpty {
-                                Text(payment.skuName)
+                            if !current.skuName.isEmpty {
+                                Text(current.skuName)
                                     .font(.system(size: 12))
                                     .foregroundStyle(Flat.textTertiary)
                             }
                         }
                         .padding(.top, 8)
 
-                        if payment.hasQR {
+                        payTypePicker
+
+                        if current.hasQR {
                             VStack(spacing: 12) {
                                 QRCodeView(text: qrText, size: 230)
-                                Text("用支付宝「扫一扫」这张码，或点下面的按钮直接跳转。")
+                                Text(isWeChat
+                                     ? "用微信「扫一扫」这张码付款；微信 App 支付串在 iOS 上无法直接调起，扫一扫最稳。"
+                                     : "用支付宝「扫一扫」这张码，或点下面的按钮直接跳转。")
                                     .font(.system(size: 12))
                                     .multilineTextAlignment(.center)
                                     .foregroundStyle(Flat.textTertiary)
@@ -95,10 +110,10 @@ struct PaySheet: View {
                             .flatCard()
                         } else {
                             VStack(spacing: 10) {
-                                Text("这笔订单还没拿到支付串")
+                                Text("这笔订单还没拿到\(payLabel)支付串")
                                     .font(.system(size: 14, weight: .semibold))
                                     .foregroundStyle(Flat.textPrimary)
-                                Text("点「重新取支付串」再试一次，订单号 \(payment.orderId)")
+                                Text("点「重新取支付串」再试一次，订单号 \(current.orderId)")
                                     .font(.system(size: 12))
                                     .multilineTextAlignment(.center)
                                     .foregroundStyle(Flat.textTertiary)
@@ -116,14 +131,29 @@ struct PaySheet: View {
                         }
 
                         Button {
-                            openAlipay()
+                            openPayApp()
                         } label: {
-                            Text("打开支付宝付款")
-                                .font(.system(size: 16, weight: .semibold))
+                            HStack(spacing: 8) {
+                                if switching { ProgressView().tint(.white) }
+                                Text("打开\(payLabel)付款")
+                                    .font(.system(size: 16, weight: .semibold))
+                            }
+                            .frame(maxWidth: .infinity)
+                        }
+                        .buttonStyle(FlatButtonStyle(tint: isWeChat ? Flat.green : Flat.accent,
+                                                      filled: true, height: 50))
+                        .disabled(!current.hasQR || switching)
+
+                        Button {
+                            UIPasteboard.general.string = qrText
+                            store.noticeMessage = "支付链接已复制，可粘贴到\(payLabel)或浏览器打开"
+                        } label: {
+                            Text("复制支付链接")
+                                .font(.system(size: 14, weight: .semibold))
                                 .frame(maxWidth: .infinity)
                         }
-                        .buttonStyle(FlatButtonStyle(tint: Flat.accent, filled: true, height: 50))
-                        .disabled(!payment.hasQR)
+                        .buttonStyle(FlatButtonStyle(tint: Flat.surfaceHigh, filled: false, height: 44))
+                        .disabled(!current.hasQR)
 
                         HStack(spacing: 10) {
                             Button {
@@ -160,9 +190,10 @@ struct PaySheet: View {
                         }
 
                         VStack(alignment: .leading, spacing: 8) {
-                            row("订单号", payment.orderId)
-                            if !payment.orgName.isEmpty { row("网点", payment.orgName) }
-                            row("创建时间", Self.formatter.string(from: payment.createdAt))
+                            row("订单号", current.orderId)
+                            if !current.orgName.isEmpty { row("网点", current.orgName) }
+                            row("支付方式", payLabel)
+                            row("创建时间", Self.formatter.string(from: current.createdAt))
                         }
                         .padding(16)
                         .flatCard(fill: Flat.surfaceLow)
@@ -189,6 +220,43 @@ struct PaySheet: View {
         }
     }
 
+    /// 支付宝 / 微信切换。切换会用同一个订单号重新取支付串，不会多建订单。
+    private var payTypePicker: some View {
+        HStack(spacing: 10) {
+            option(title: "支付宝", detail: "扫码 / 跳转", type: PGProtocol.payTypeAlipay)
+            option(title: "微信支付", detail: "扫一扫付款", type: PGProtocol.payTypeWeChat)
+        }
+    }
+
+    private func option(title: String, detail: String, type: Int) -> some View {
+        let selected = payType == type
+        return Button {
+            guard !switching, payType != type else { return }
+            Task {
+                switching = true
+                await store.switchPayType(type)
+                switching = false
+                if store.pending?.payType == type {
+                    payTypeOverride = type
+                }
+            }
+        } label: {
+            VStack(spacing: 3) {
+                Text(title)
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundStyle(selected ? Flat.accent : Flat.textSecondary)
+                Text(detail)
+                    .font(.system(size: 11))
+                    .foregroundStyle(Flat.textTertiary)
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 10)
+        }
+        .buttonStyle(.plain)
+        .flatPill(selected: selected, tint: type == PGProtocol.payTypeWeChat ? Flat.green : Flat.accent)
+        .disabled(switching)
+    }
+
     private func row(_ title: String, _ value: String) -> some View {
         HStack(alignment: .top) {
             Text(title)
@@ -203,20 +271,32 @@ struct PaySheet: View {
         }
     }
 
-    private func openAlipay() {
-        let candidates = PGProtocol.paymentCandidates(for: payment.prepayParam)
-        openNext(candidates, index: 0)
+    private func openPayApp() {
+        let param = current.prepayParam
+        let candidates = isWeChat
+            ? PGProtocol.wechatCandidates(for: param)
+            : PGProtocol.paymentCandidates(for: param)
+        if isWeChat, PGProtocol.wechatNeedsNativeApp(param: param) {
+            store.log("微信支付串是 App 支付参数（appid/partnerid/prepayid），iOS 无法用 URL 直接调起，改用扫码")
+        }
+        openNext(candidates, index: 0, payLabel: payLabel)
     }
 
-    private func openNext(_ urls: [URL], index: Int) {
+    private func openNext(_ urls: [URL], index: Int, payLabel: String) {
         guard index < urls.count else {
-            store.errorMessage = "没能拉起支付宝，请用另一台手机扫上面的二维码"
+            store.errorMessage = "系统没让\(payLabel)接管这个链接：请用另一台手机扫上面的二维码，或点「复制支付链接」自己粘贴"
             return
         }
         let url = urls[index]
-        UIApplication.shared.open(url, options: [:]) { ok in
+        let app = UIApplication.shared
+        // 先 canOpenURL：没装对应 App 时 iOS 会静默失败，这里提前给出可照做的提示。
+        guard app.canOpenURL(url) else {
+            openNext(urls, index: index + 1, payLabel: payLabel)
+            return
+        }
+        app.open(url, options: [:]) { ok in
             if !ok {
-                openNext(urls, index: index + 1)
+                openNext(urls, index: index + 1, payLabel: payLabel)
             }
         }
     }
