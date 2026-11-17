@@ -2,7 +2,7 @@ import AVFoundation
 import SwiftUI
 import UIKit
 
-/// 扫码取机器码：支付宝/微信扫到的是 `NQT=...` 链接或纯码，都会交给 onCode。
+/// 扫码取机器码：官方二维码是 `https://h5.qiekj.com/skip?...&NQT=...`，也可能是 `NQT=...` 或纯码，都会交给 onCode。
 struct ScanSheet: View {
     @Environment(\.dismiss) private var dismiss
 
@@ -85,10 +85,28 @@ struct ScanSheet: View {
 
     private var manualInput: some View {
         VStack(spacing: 10) {
-            TextField("手动输入机器码（如 NQT…）", text: $manual)
-                .autocorrectionDisabled()
-                .textInputAutocapitalization(.never)
-                .flatField()
+            HStack(spacing: 8) {
+                TextField("机器码或二维码链接（NQT=…）", text: $manual)
+                    .autocorrectionDisabled()
+                    .textInputAutocapitalization(.never)
+                    .flatField()
+                Button {
+                    if let text = UIPasteboard.general.string {
+                        manual = text.trimmingCharacters(in: .whitespacesAndNewlines)
+                    }
+                } label: {
+                    Text("粘贴")
+                        .font(.system(size: 13, weight: .semibold))
+                        .foregroundStyle(Flat.accent)
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 11)
+                        .background(
+                            RoundedRectangle(cornerRadius: 10, style: .continuous)
+                                .fill(Flat.accent.opacity(0.14))
+                        )
+                }
+                .buttonStyle(.plain)
+            }
             Button {
                 let code = manual.trimmingCharacters(in: .whitespacesAndNewlines)
                 guard !code.isEmpty else { return }
