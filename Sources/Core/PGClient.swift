@@ -85,6 +85,11 @@ final class PGClient {
         await post("/user/balance")
     }
 
+    /// 店铺（受限）余额列表：`/user/astrict/list`。
+    func astrictList() async -> PGResponse {
+        await post("/user/astrict/list")
+    }
+
     // MARK: - 洗衣机
 
     /// 最近用过的洗衣机（categoryCode=wash）。
