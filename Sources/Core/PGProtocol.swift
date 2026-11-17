@@ -106,6 +106,20 @@ struct PGResponse {
 
     var dataArray: [[String: Any]]? { json["data"] as? [[String: Any]] }
 
+    /// 服务端文案有几处会误导人，这里翻译成能照做的说法。
+    /// 最典型：/goods/scan/v2 在 token 为空时回 `版本过低，请升级APP后再使用`，
+    /// 实际与版本无关（换任何版本号都一样，带上任意非空 token 就恢复正常）。
+    var friendlyMessage: String {
+        let text = message
+        if code == -1 && (text.contains("版本过低") || text.contains("升级")) {
+            return "登录状态缺失，请先登录手机号账号再扫码"
+        }
+        if text.contains("设备未绑定") {
+            return "这台机器没有在平台上绑定商家，暂时不能用（故障码 4000）"
+        }
+        return text
+    }
+
     var ok: Bool { code == 0 }
 
     var isUnauthorized: Bool {
