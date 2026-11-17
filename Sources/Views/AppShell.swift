@@ -57,6 +57,13 @@ struct AppShell: View {
         .task {
             await store.autoDetectOnLaunch()
         }
+        .onAppear {
+            // 洗涤倒计时：每秒重算剩余时间，退到后台就停，回到前台接着走。
+            store.startClock()
+        }
+        .onDisappear {
+            store.stopClock()
+        }
     }
 
     private var tabBar: some View {
