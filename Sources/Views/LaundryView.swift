@@ -22,11 +22,11 @@ struct LaundryView: View {
                     accountCard
 
                     if let running = store.runningOrder {
-                        WashProgressCard(order: running, now: store.now, alert: store.deviceAlert)
+                        WashProgressCard(order: running, now: store.now, alert: store.activeAlert)
                     } else if let paid = store.latestPaidOrder,
                               let end = paid.endsAt,
                               end.timeIntervalSince(store.now) > -300 {
-                        WashProgressCard(order: paid, now: store.now, alert: store.deviceAlert)
+                        WashProgressCard(order: paid, now: store.now, alert: store.activeAlert)
                     }
 
                     scanCard
@@ -319,6 +319,47 @@ struct LaundryView: View {
             }
 
             FlatDivider(inset: 0)
+
+            if device.hasDeviceError {
+                HStack(alignment: .top, spacing: 8) {
+                    Image(systemName: "exclamationmark.triangle.fill")
+                        .font(.system(size: 13, weight: .semibold))
+                        .foregroundStyle(Flat.orange)
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("设备异常，已暂停")
+                            .font(.system(size: 13, weight: .semibold))
+                            .foregroundStyle(Flat.textPrimary)
+                        Text(device.deviceErrorText)
+                            .font(.system(size: 12))
+                            .foregroundStyle(Flat.textSecondary)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+                    Spacer()
+                }
+                .padding(10)
+                .background(
+                    RoundedRectangle(cornerRadius: 10, style: .continuous)
+                        .fill(Flat.orange.opacity(0.12))
+                )
+            }
+
+            if !device.announcementContent.isEmpty {
+                HStack(alignment: .top, spacing: 8) {
+                    Image(systemName: "megaphone.fill")
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundStyle(Flat.cyan)
+                    Text(device.announcementContent)
+                        .font(.system(size: 12))
+                        .foregroundStyle(Flat.textSecondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                    Spacer()
+                }
+                .padding(10)
+                .background(
+                    RoundedRectangle(cornerRadius: 10, style: .continuous)
+                        .fill(Flat.cyan.opacity(0.10))
+                )
+            }
 
             if store.skus.isEmpty {
                 Text("这台机器暂时没有可选套餐")
