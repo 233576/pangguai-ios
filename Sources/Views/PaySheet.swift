@@ -411,7 +411,12 @@ struct PaySheet: View {
             let fields = PGProtocol.payFields(current.prepayParam)
             if WeChatPay.parse(fields) != nil {
                 WeChatPay.pay(fields) { ok, reason in
-                    if !ok {
+                    guard !ok else { return }
+                    // SDK 发不出去（常见：服务端 sign 绑了官方包名）就退回上一版能用的 weixin://wap/pay
+                    let fallback = handoff.schemes
+                    if !fallback.isEmpty {
+                        openSchemes(fallback, index: 0)
+                    } else {
                         alertMessage = reason.isEmpty
                             ? "微信没有接受这次支付请求，可以换余额或用另一台手机扫码。"
                             : reason + "（也可以换余额，或点「复制支付串」发我）"
