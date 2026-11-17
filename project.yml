@@ -14,8 +14,8 @@ settings:
     CODE_SIGNING_REQUIRED: NO
     CODE_SIGN_IDENTITY: ""
     DEVELOPMENT_TEAM: ""
-    MARKETING_VERSION: "1.0.14"
-    CURRENT_PROJECT_VERSION: "15"
+    MARKETING_VERSION: "1.0.15"
+    CURRENT_PROJECT_VERSION: "16"
 
 targets:
   Pangguai:
@@ -44,8 +44,8 @@ targets:
         CFBundleDisplayName: 胖乖洗衣
         NSCameraUsageDescription: 需要相机扫码识别洗衣机上的二维码。
         NSPhotoLibraryAddUsageDescription: 保存支付二维码到相册，方便用支付宝或微信的扫一扫从相册选图付款。
-        CFBundleShortVersionString: "1.0.14"
-        CFBundleVersion: "15"
+        CFBundleShortVersionString: "1.0.15"
+        CFBundleVersion: "16"
         UILaunchScreen: {}
         UISupportedInterfaceOrientations:
           - UIInterfaceOrientationPortrait
