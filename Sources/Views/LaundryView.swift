@@ -20,6 +20,15 @@ struct LaundryView: View {
                 VStack(spacing: 14) {
                     header
                     accountCard
+
+                    if let running = store.runningOrder {
+                        WashProgressCard(order: running, now: store.now)
+                    } else if let paid = store.latestPaidOrder,
+                              let end = paid.endsAt,
+                              end.timeIntervalSince(store.now) > -300 {
+                        WashProgressCard(order: paid, now: store.now)
+                    }
+
                     scanCard
 
                     if let device = store.device {
