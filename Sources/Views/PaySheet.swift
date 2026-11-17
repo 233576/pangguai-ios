@@ -9,11 +9,10 @@ struct QRCodeView: View {
     var size: CGFloat = 220
 
     private static let context = CIContext()
-    private static let filter = CIFilter.qrCodeGenerator()
 
     var body: some View {
         Group {
-            if let image = makeImage() {
+            if let image = Self.image(for: text) {
                 Image(uiImage: image)
                     .interpolation(.none)
                     .resizable()
@@ -35,13 +34,15 @@ struct QRCodeView: View {
         }
     }
 
-    private func makeImage() -> UIImage? {
+    /// 也用于「保存二维码到相册」，所以做成静态工厂。
+    static func image(for text: String, scale: CGFloat = 12) -> UIImage? {
         guard !text.isEmpty, let data = text.data(using: .utf8) else { return nil }
-        Self.filter.message = data
-        Self.filter.correctionLevel = "M"
-        guard let output = Self.filter.outputImage else { return nil }
-        let scaled = output.transformed(by: CGAffineTransform(scaleX: 8, y: 8))
-        guard let cg = Self.context.createCGImage(scaled, from: scaled.extent) else { return nil }
+        let filter = CIFilter.qrCodeGenerator()
+        filter.message = data
+        filter.correctionLevel = "M"
+        guard let output = filter.outputImage else { return nil }
+        let scaled = output.transformed(by: CGAffineTransform(scaleX: scale, y: scale))
+        guard let cg = context.createCGImage(scaled, from: scaled.extent) else { return nil }
         return UIImage(cgImage: cg)
     }
 }
@@ -57,6 +58,8 @@ struct PaySheet: View {
     @State private var cancelling = false
     @State private var payTypeOverride: Int?
     @State private var switching = false
+    @State private var alertMessage: String?
+    @State private var savedQR = false
 
     /// 以 store 里的挂单为准（切换支付方式后 prepayParam / payType 都会变）。
     private var current: PendingPayment { store.pending ?? payment }
@@ -131,17 +134,50 @@ struct PaySheet: View {
                         }
 
                         Button {
-                            openPayApp()
+                            saveQRToAlbum()
                         } label: {
                             HStack(spacing: 8) {
-                                if switching { ProgressView().tint(.white) }
-                                Text("打开\(payLabel)付款")
+                                Image(systemName: savedQR ? "checkmark.circle.fill" : "square.and.arrow.down")
+                                    .font(.system(size: 15, weight: .semibold))
+                                Text(savedQR ? "已存入相册" : "保存二维码到相册")
                                     .font(.system(size: 16, weight: .semibold))
                             }
                             .frame(maxWidth: .infinity)
                         }
                         .buttonStyle(FlatButtonStyle(tint: isWeChat ? Flat.green : Flat.accent,
                                                       filled: true, height: 50))
+                        .disabled(!current.hasQR)
+
+                        Button {
+                            openScanner()
+                        } label: {
+                            HStack(spacing: 8) {
+                                Image(systemName: "qrcode.viewfinder")
+                                    .font(.system(size: 15, weight: .semibold))
+                                Text("打开\(payLabel)扫一扫")
+                                    .font(.system(size: 15, weight: .semibold))
+                            }
+                            .frame(maxWidth: .infinity)
+                        }
+                        .buttonStyle(FlatButtonStyle(tint: isWeChat ? Flat.green : Flat.accent,
+                                                      filled: false, height: 46))
+
+                        Text(isWeChat
+                             ? "微信不支持被外部 App 直接调起收银台，所以流程是：保存二维码 → 打开微信扫一扫 → 右上角「相册」选刚存的图。"
+                             : "支付宝对第三方直接调起收银台的限制越来越严，稳妥流程同上：保存二维码 → 打开支付宝扫一扫 → 右上角「相册」选图。")
+                            .font(.system(size: 11))
+                            .multilineTextAlignment(.center)
+                            .foregroundStyle(Flat.textTertiary)
+                            .padding(.horizontal, 6)
+
+                        Button {
+                            openPayApp()
+                        } label: {
+                            Text("尝试直接调起\(payLabel)收银台")
+                                .font(.system(size: 13, weight: .medium))
+                                .frame(maxWidth: .infinity)
+                        }
+                        .buttonStyle(FlatButtonStyle(tint: Flat.surfaceHigh, filled: false, height: 40))
                         .disabled(!current.hasQR || switching)
 
                         Button {
@@ -217,6 +253,14 @@ struct PaySheet: View {
                         .foregroundStyle(Flat.accent)
                 }
             }
+            .alert("提示", isPresented: Binding(
+                get: { alertMessage != nil },
+                set: { if !$0 { alertMessage = nil } }
+            )) {
+                Button("知道了", role: .cancel) { alertMessage = nil }
+            } message: {
+                Text(alertMessage ?? "")
+            }
         }
     }
 
@@ -282,21 +326,48 @@ struct PaySheet: View {
         openNext(candidates, index: 0, payLabel: payLabel)
     }
 
+    /// 打开支付宝 / 微信的扫一扫，用户再从相册里选刚保存的二维码。
+    private func openScanner() {
+        guard let url = PGProtocol.qrScanScheme(payType: payType) else {
+            alertMessage = "拼不出\(payLabel)扫一扫的链接"
+            return
+        }
+        let app = UIApplication.shared
+        app.open(url, options: [:]) { ok in
+            guard !ok else { return }
+            DispatchQueue.main.async {
+                self.alertMessage = self.savedQR
+                    ? "系统没放行打开\(self.payLabel)。可以手动打开\(self.payLabel)，用「扫一扫」右上角的相册选刚保存的二维码。"
+                    : "系统没放行打开\(self.payLabel)。先点上面的「保存二维码到相册」，再手动打开\(self.payLabel)用相册扫码。"
+            }
+        }
+    }
+
+    private func saveQRToAlbum() {
+        guard let image = QRCodeView.image(for: qrText) else {
+            alertMessage = "二维码生成失败，没法保存"
+            return
+        }
+        UIImageWriteToSavedPhotosAlbum(image, nil, nil, nil)
+        savedQR = true
+        alertMessage = "已存入相册。接着点「打开\(payLabel)扫一扫」，在扫一扫右上角选「相册」，挑这张二维码即可付款。"
+        store.log("二维码已保存到相册（\(qrText.count) 字符）")
+    }
+
     private func openNext(_ urls: [URL], index: Int, payLabel: String) {
         guard index < urls.count else {
-            store.errorMessage = "系统没让\(payLabel)接管这个链接：请用另一台手机扫上面的二维码，或点「复制支付链接」自己粘贴"
+            alertMessage = (savedQR
+                ? "\(payLabel)没有接管这个链接。二维码已在相册里，手动打开\(payLabel)用扫一扫的相册选图就能付。"
+                : "\(payLabel)没有接管这个链接。先保存二维码到相册，再手动打开\(payLabel)用相册扫码。")
             return
         }
         let url = urls[index]
-        let app = UIApplication.shared
-        // 先 canOpenURL：没装对应 App 时 iOS 会静默失败，这里提前给出可照做的提示。
-        guard app.canOpenURL(url) else {
-            openNext(urls, index: index + 1, payLabel: payLabel)
-            return
-        }
-        app.open(url, options: [:]) { ok in
-            if !ok {
-                openNext(urls, index: index + 1, payLabel: payLabel)
+        // 不先用 canOpenURL 预判：它对 alipays:// / weixin:// 的判定经常与真实 open 结果不一致，
+        // 直接 open 拿回调更准。
+        UIApplication.shared.open(url, options: [:]) { ok in
+            guard !ok else { return }
+            DispatchQueue.main.async {
+                self.openNext(urls, index: index + 1, payLabel: payLabel)
             }
         }
     }
