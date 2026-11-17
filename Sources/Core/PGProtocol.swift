@@ -19,6 +19,9 @@ enum PGProtocol {
     /// 具体这台机器开了哪些，看 `/pay/ticket/getAvailablePayTypeList`。
     static let payTypeWallet = 2
     static let payTypeAlipay = 13
+    /// 胖乖小程序 appid（抓自 h5.qiekj.com/skip 的 JSAPI 签名）。
+    /// 微信 prepayParam 里不带 appid，拉起 weixin://wap/pay 时必须补上，否则报「appid 参数不正确」。
+    static let wechatMiniAppId = "wxd1eab8ed00ec3c5b"
     static let payTypeWeChat = 31          // 抓包实证：prePay 用 31 才回真实 prepayParam
     static let payTypeWeChatLegacy = 32    // 旧渠道列表里出现的值，做兼容
 
@@ -129,7 +132,8 @@ enum PGProtocol {
         }
         let sign = firstValue(fields, ["sign", "paySign", "pay_sign"])
         guard !prepay.isEmpty, !sign.isEmpty else { return [] }
-        let appid = firstValue(fields, ["appid", "appId", "app_id"])
+        var appid = firstValue(fields, ["appid", "appId", "app_id"])
+        if appid.isEmpty { appid = wechatMiniAppId }
         let nonce = firstValue(fields, ["noncestr", "nonceStr", "nonce_str"])
         let stamp = firstValue(fields, ["timestamp", "timeStamp", "time_stamp"])
         let partner = firstValue(fields, ["partnerid", "partnerId", "mch_id"])
@@ -140,6 +144,11 @@ enum PGProtocol {
         variants.append([
             "appid": appid, "noncestr": nonce, "package": package.isEmpty ? "Sign=WXPay" : package,
             "prepayid": prepay, "timestamp": stamp, "sign": sign, "signType": signType
+        ])
+        // 小程序 JSAPI 形态：package 直接是 prepay_id=xxx，不带 signType
+        variants.append([
+            "appid": appid, "noncestr": nonce, "package": package,
+            "prepayid": prepay, "timestamp": stamp, "sign": sign
         ])
         // App 支付参数：另带 partnerid
         variants.append([
