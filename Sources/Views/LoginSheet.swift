@@ -2,6 +2,9 @@ import SwiftUI
 
 /// 短信验证码登录。胖乖用 /user/reg 同时完成注册与登录。
 struct LoginSheet: View {
+    /// 登录成功后回调（用于接着把已输入的机器码查出来）。
+    var onSuccess: (() -> Void)?
+
     @EnvironmentObject private var store: AppStore
     @Environment(\.dismiss) private var dismiss
 
@@ -61,7 +64,10 @@ struct LoginSheet: View {
                             loggingIn = true
                             let ok = await store.login(phone: phone, code: code)
                             loggingIn = false
-                            if ok { dismiss() }
+                            if ok {
+                                dismiss()
+                                onSuccess?()
+                            }
                         }
                     } label: {
                         HStack(spacing: 8) {
