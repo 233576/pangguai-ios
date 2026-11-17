@@ -135,6 +135,29 @@ struct PendingPayment: Codable, Equatable {
     var hasQR: Bool { !prepayParam.isEmpty }
 }
 
+// MARK: - 支付渠道
+
+/// 服务端 `/pay/ticket/getAvailablePayTypeList` 返回的一项。
+/// 不同网点开通的渠道不一样，UI 只该列出真实开通的。
+struct PayOption: Identifiable, Hashable {
+    var type: Int
+    var name: String
+    var isDefault: Bool
+
+    var id: Int { type }
+
+    var title: String { name.isEmpty ? PGProtocol.payTitle(type) : name }
+
+    var detail: String {
+        switch type {
+        case PGProtocol.payTypeWallet: return "余额扣款"
+        case PGProtocol.payTypeWeChat: return "扫一扫付款"
+        case PGProtocol.payTypeAlipay: return "扫码 / 跳转"
+        default: return isDefault ? "默认" : ""
+        }
+    }
+}
+
 // MARK: - 设置
 
 struct Settings: Codable, Equatable {
