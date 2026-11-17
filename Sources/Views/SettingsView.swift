@@ -92,14 +92,19 @@ struct SettingsView: View {
 
     private var payCard: some View {
         VStack(alignment: .leading, spacing: 12) {
-            FlatSectionHeader(title: "支付方式")
+            FlatSectionHeader(title: "默认支付方式")
             HStack(spacing: 10) {
                 payOption(title: "支付宝", detail: "扫码付", value: PGProtocol.payTypeAlipay)
-                payOption(title: "钱包余额", detail: "需先充值", value: 2)
+                payOption(title: "微信", detail: "扫一扫付", value: PGProtocol.payTypeWeChat)
             }
-            Text("扫码付：下单后 App 出二维码，用支付宝扫一下就行，不需要装别的东西。")
+            HStack(spacing: 10) {
+                payOption(title: "钱包余额", detail: "需先充值", value: PGProtocol.payTypeWallet)
+                payOption(title: "支付宝免密", detail: "小额直扣", value: 15)
+            }
+            Text("下单后 App 会用选中的方式取支付串，出二维码；支付面板里还能随时切换支付宝 / 微信，订单号不变。")
                 .font(.system(size: 11))
                 .foregroundStyle(Flat.textTertiary)
+                .fixedSize(horizontal: false, vertical: true)
         }
         .padding(16)
         .flatCard()
@@ -119,7 +124,8 @@ struct SettingsView: View {
             .foregroundStyle(store.settings.payType == value ? Flat.accent : Flat.textSecondary)
             .frame(maxWidth: .infinity)
             .padding(.vertical, 12)
-            .flatPill(selected: store.settings.payType == value)
+            .flatPill(selected: store.settings.payType == value,
+                      tint: value == PGProtocol.payTypeWeChat ? Flat.green : Flat.accent)
         }
         .buttonStyle(.plain)
     }
