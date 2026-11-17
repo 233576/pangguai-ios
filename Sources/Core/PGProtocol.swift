@@ -19,11 +19,12 @@ enum PGProtocol {
     /// 具体这台机器开了哪些，看 `/pay/ticket/getAvailablePayTypeList`。
     static let payTypeWallet = 2
     static let payTypeAlipay = 13
-    static let payTypeWeChat = 32
+    static let payTypeWeChat = 31          // 抓包实证：prePay 用 31 才回真实 prepayParam
+    static let payTypeWeChatLegacy = 32    // 旧渠道列表里出现的值，做兼容
 
     static func payTitle(_ payType: Int) -> String {
         switch payType {
-        case payTypeWeChat: return "微信支付"
+        case payTypeWeChat, payTypeWeChatLegacy: return "微信支付"
         case payTypeAlipay, 15: return "支付宝"
         case payTypeWallet: return "余额支付"
         default: return "支付方式 \(payType)"
@@ -121,27 +122,34 @@ enum PGProtocol {
     /// 官方 H5 支付就是这么把参数交给微信的，App 支付的 sign 与 H5 的 sign 算法不同，
     /// 所以这里把几种常见字段组合都试一遍（能通一种就够）。
     static func wechatSchemes(_ fields: [String: String]) -> [URL] {
-        let prepay = firstValue(fields, ["prepayid", "prepayId", "prepay_id"])
+        let package = firstValue(fields, ["package", "packageValue"])
+        var prepay = firstValue(fields, ["prepayid", "prepayId", "prepay_id"])
+        if prepay.isEmpty, package.hasPrefix("prepay_id=") {
+            prepay = String(package.dropFirst("prepay_id=".count))
+        }
         let sign = firstValue(fields, ["sign", "paySign", "pay_sign"])
         guard !prepay.isEmpty, !sign.isEmpty else { return [] }
         let appid = firstValue(fields, ["appid", "appId", "app_id"])
         let nonce = firstValue(fields, ["noncestr", "nonceStr", "nonce_str"])
-        let package = firstValue(fields, ["package", "packageValue"])
         let stamp = firstValue(fields, ["timestamp", "timeStamp", "time_stamp"])
         let partner = firstValue(fields, ["partnerid", "partnerId", "mch_id"])
+        let signType = firstValue(fields, ["signType", "sign_type"])
 
         var variants: [[String: String]] = []
+        // 小程序/JSAPI 支付参数：package 里就带 prepay_id，sign 是 HMAC-SHA256
         variants.append([
             "appid": appid, "noncestr": nonce, "package": package.isEmpty ? "Sign=WXPay" : package,
-            "prepayid": prepay, "timestamp": stamp, "sign": sign
+            "prepayid": prepay, "timestamp": stamp, "sign": sign, "signType": signType
         ])
+        // App 支付参数：另带 partnerid
         variants.append([
             "appid": appid, "noncestr": nonce, "package": package.isEmpty ? "Sign=WXPay" : package,
-            "partnerid": partner, "prepayid": prepay, "timestamp": stamp, "sign": sign
+            "partnerid": partner, "prepayid": prepay, "timestamp": stamp, "sign": sign, "signType": signType
         ])
+        // 不带 appid 的兜底（微信会从 prepay_id 反查商户）
         variants.append([
             "prepayid": prepay, "package": package.isEmpty ? "Sign=WXPay" : package,
-            "noncestr": nonce, "timestamp": stamp, "sign": sign, "appid": appid
+            "noncestr": nonce, "timestamp": stamp, "sign": sign
         ])
 
         var result: [URL] = []
@@ -177,7 +185,7 @@ enum PGProtocol {
             if !mweb.isEmpty, let url = URL(string: mweb) { result.web = url }
             else if !h5.isEmpty, let url = URL(string: h5) { result.web = url }
 
-            if payType == payTypeWeChat {
+            if payType == payTypeWeChat || payType == payTypeWeChatLegacy {
                 let wap = wechatSchemes(fields)
                 if !wap.isEmpty {
                     result.schemes = wap
@@ -208,7 +216,7 @@ enum PGProtocol {
         }
         if raw.lowercased().hasPrefix("http") {
             result.web = URL(string: raw)
-            if payType == payTypeWeChat || payType == payTypeAlipay {
+            if payType == payTypeWeChat || payType == payTypeWeChatLegacy || payType == payTypeAlipay {
                 result.qr = raw
             }
             return result
@@ -225,7 +233,7 @@ enum PGProtocol {
                 result.schemes = [url]
                 result.qr = url.absoluteString
             }
-        case payTypeWeChat:
+        case payTypeWeChat, payTypeWeChatLegacy:
             result.qr = raw
             result.note = "微信返回的是原始串，先用微信「扫一扫」扫下面的二维码"
         default:
