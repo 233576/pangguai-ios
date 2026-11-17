@@ -147,12 +147,12 @@ struct OrdersView: View {
                     Text(order.title)
                         .font(.system(size: 15, weight: .semibold))
                         .foregroundStyle(Flat.textPrimary)
-                    Text(order.createTime.isEmpty ? order.orderNo : order.createTime)
+                    Text(subtitle(order))
                         .font(.system(size: 11))
                         .foregroundStyle(Flat.textTertiary)
                 }
                 Spacer()
-                Text(order.statusText)
+                Text(order.displayStatusText)
                     .font(.system(size: 11, weight: .semibold))
                     .foregroundStyle(statusColor(order.status))
                     .padding(.horizontal, 10)
@@ -209,10 +209,20 @@ struct OrdersView: View {
         .flatCard()
     }
 
+    /// 时间 + 订单号 + 原始状态码，方便对着服务端核状态。
+    private func subtitle(_ order: PGOrder) -> String {
+        var parts: [String] = []
+        if !order.createTime.isEmpty { parts.append(order.createTime) }
+        if !order.orderNo.isEmpty { parts.append(order.orderNo) }
+        parts.append("#\(order.status)")
+        return parts.joined(separator: " · ")
+    }
+
     private func statusColor(_ status: Int) -> Color {
         switch status {
         case 0: return Flat.orange
-        case 1, 2: return Flat.accent
+        case 1: return Flat.textTertiary
+        case 2: return Flat.accent
         case 3: return Flat.green
         case 4: return Flat.textTertiary
         case 5, 6: return Flat.purple
