@@ -127,11 +127,37 @@ final class PGClient {
         ])
     }
 
-    /// 取支付串（payType 13 = 支付宝）。
-    func prePay(orderNo: String, payType: Int) async -> PGResponse {
-        await post("/pay/unify/prePay", [
+    /// 这台机器到底开了哪些支付方式。
+    /// prePay 在渠道没开通时会回 code=0 + 空 prepayParam + `payTypeList`，
+    /// 直接照那个列表去试钱包就会走到「占位支付串」，所以先问一遍官方接口。
+    func availablePayTypes(goodsId: String, shopId: String, orgId: String,
+                           imei: String, categoryCode: String) async -> PGResponse {
+        await post("/pay/ticket/getAvailablePayTypeList", [
+            ("goodsId", goodsId),
+            ("shopId", shopId),
+            ("orgId", orgId),
+            ("imei", imei),
+            ("categoryCode", categoryCode.isEmpty ? PGProtocol.categoryCode : categoryCode)
+        ])
+    }
+
+    /// 取支付串（payType 13 = 支付宝）。`againFlag` 只在系统结算过的订单上需要。
+    func prePay(orderNo: String, payType: Int, againFlag: String = "") async -> PGResponse {
+        var fields: [(String, String)] = [
             ("orderNo", orderNo),
             ("payType", String(payType))
+        ]
+        if !againFlag.isEmpty {
+            fields.append(("againFlag", againFlag))
+        }
+        return await post("/pay/unify/prePay", fields)
+    }
+
+    /// 钱包余额支付（payType 恒为 2）。prePay 对钱包只回占位串，真正扣款走这条。
+    func walletPay(orderNo: String) async -> PGResponse {
+        await post("/pay/unify/pay", [
+            ("orderNo", orderNo),
+            ("payType", String(PGProtocol.payTypeWallet))
         ])
     }
 
