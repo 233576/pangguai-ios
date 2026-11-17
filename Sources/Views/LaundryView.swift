@@ -153,7 +153,7 @@ struct LaundryView: View {
                     .font(.system(size: 16, weight: .semibold))
                     .foregroundStyle(Flat.textPrimary)
                 Text(store.loggedIn
-                     ? "余额 \(store.user?.balanceText ?? "—")\(store.user?.hasVip == true ? " · 会员" : "")"
+                     ? "余额 \(store.user?.balanceText ?? "—") · 店铺 \(store.shopBalanceText)\(store.user?.hasVip == true ? " · 会员" : "")"
                      : "手机号 + 验证码，10 秒登录")
                     .font(.system(size: 12))
                     .foregroundStyle(Flat.textTertiary)
