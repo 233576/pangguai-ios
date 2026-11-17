@@ -23,17 +23,34 @@ enum PGProtocol {
         payType == payTypeWallet ? "余额支付" : "余额支付"
     }
 
-    /// 充值走官方 H5：`user/recharge/operatorInfo/operatorInfo?operatorId=..&shopName=..&token=..`
+    /// 充值走官方 H5。真正的充值页是 `buyGold`（通用小票充值，只需 shopId），
+    /// `user/recharge/operatorInfo` 只是「运营商信息」展示页，会显示「暂无运营商信息」。
     static let h5Base = "https://h5.qiekj.com/"
 
-    static func rechargeURL(token: String, orgId: String, shopName: String) -> URL? {
-        guard !token.isEmpty else { return nil }
-        var components = URLComponents(string: h5Base + "user/recharge/operatorInfo/operatorInfo")
+    /// 充值页（通用小票）：`buyGold?shopId=..&token=..`
+    static func rechargeURL(token: String, shopId: String) -> URL? {
+        guard !token.isEmpty, !shopId.isEmpty else { return nil }
+        var components = URLComponents(string: h5Base + "buyGold")
         components?.queryItems = [
-            URLQueryItem(name: "operatorId", value: orgId),
-            URLQueryItem(name: "shopName", value: shopName),
+            URLQueryItem(name: "shopId", value: shopId),
             URLQueryItem(name: "token", value: token)
         ]
+        return components?.url
+    }
+
+    /// 官方「我的钱包」页：`pages/wallet/myWallet/myWallet?token=..`
+    static func walletURL(token: String) -> URL? {
+        guard !token.isEmpty else { return nil }
+        var components = URLComponents(string: h5Base + "pages/wallet/myWallet/myWallet")
+        components?.queryItems = [URLQueryItem(name: "token", value: token)]
+        return components?.url
+    }
+
+    /// 余额明细页：`pages/wallet/balanceDetail/balanceDetail?token=..`
+    static func balanceDetailURL(token: String) -> URL? {
+        guard !token.isEmpty else { return nil }
+        var components = URLComponents(string: h5Base + "pages/wallet/balanceDetail/balanceDetail")
+        components?.queryItems = [URLQueryItem(name: "token", value: token)]
         return components?.url
     }
 
