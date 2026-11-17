@@ -655,7 +655,12 @@ final class AppStore: ObservableObject {
                                  detail: "余额支付失败：\(wallet.friendlyMessage)")
         }
 
-        let response = await client.prePay(orderNo: orderNo, payType: payType)
+        // 微信渠道服务端只认 31；旧值 32 做一次兜底重试
+        var response = await client.prePay(orderNo: orderNo, payType: payType)
+        if payType == PGProtocol.payTypeWeChat, PGProtocol.deepPayParam(in: response.dataObject).isEmpty {
+            let retry = await client.prePay(orderNo: orderNo, payType: PGProtocol.payTypeWeChatLegacy)
+            if !PGProtocol.deepPayParam(in: retry.dataObject).isEmpty { response = retry }
+        }
         lastPrepayRaw = "prePay(payType=\(payType))\n\(response.body)"
         if response.isUnauthorized {
             return PrePayOutcome(payType: payType, detail: "登录已失效，请重新登录后再试")
