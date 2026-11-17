@@ -60,6 +60,7 @@ struct PaySheet: View {
     @State private var switching = false
     @State private var alertMessage: String?
     @State private var savedQR = false
+    @State private var showRaw = false
 
     /// 以 store 里的挂单为准（切换支付方式后 prepayParam / payType 都会变）。
     private var current: PendingPayment { store.pending ?? payment }
@@ -130,6 +131,40 @@ struct PaySheet: View {
                                         .padding(10)
                                         .background(Flat.surfaceLow)
                                         .clipShape(RoundedRectangle(cornerRadius: 8))
+                                }
+                                if !store.lastPrepayRaw.isEmpty {
+                                    VStack(alignment: .leading, spacing: 6) {
+                                        Button {
+                                            showRaw.toggle()
+                                        } label: {
+                                            HStack(spacing: 4) {
+                                                Image(systemName: showRaw ? "chevron.down" : "chevron.right")
+                                                    .font(.system(size: 10, weight: .bold))
+                                                Text("服务端原始响应（\(store.lastPrepayRaw.count) 字符）")
+                                                    .font(.system(size: 11, weight: .semibold))
+                                            }
+                                            .foregroundStyle(Flat.textSecondary)
+                                        }
+                                        if showRaw {
+                                            Text(store.lastPrepayRaw)
+                                                .font(.system(size: 10, design: .monospaced))
+                                                .foregroundStyle(Flat.textTertiary)
+                                                .textSelection(.enabled)
+                                                .frame(maxWidth: .infinity, alignment: .leading)
+                                                .padding(8)
+                                                .background(Flat.surfaceLow)
+                                                .clipShape(RoundedRectangle(cornerRadius: 8))
+                                            Button {
+                                                UIPasteboard.general.string = store.lastPrepayRaw
+                                                alertMessage = "原始响应已复制"
+                                            } label: {
+                                                Text("复制原始响应")
+                                                    .font(.system(size: 11, weight: .semibold))
+                                                    .foregroundStyle(Flat.accent)
+                                            }
+                                        }
+                                    }
+                                    .frame(maxWidth: .infinity, alignment: .leading)
                                 }
                                 Button {
                                     Task {
