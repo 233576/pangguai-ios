@@ -15,12 +15,144 @@ enum PGProtocol {
     /// 洗衣机分类码：`/goods/latestUsed` 只认这个值。
     static let categoryCode = "wash"
 
-    /// 洗衣机这边只支持余额扣款（`/pay/unify/pay`）。
-    /// 这台网点对 13 支付宝、32 微信只会回 `payTypeList:[2]` + 空支付串，所以界面上不再提供它们。
+    /// 洗衣机支持的渠道：2 余额（`/pay/unify/pay` 直接扣）、13 支付宝、32 微信。
+    /// 具体这台机器开了哪些，看 `/pay/ticket/getAvailablePayTypeList`。
     static let payTypeWallet = 2
+    static let payTypeAlipay = 13
+    static let payTypeWeChat = 32
 
     static func payTitle(_ payType: Int) -> String {
-        payType == payTypeWallet ? "余额支付" : "余额支付"
+        switch payType {
+        case payTypeWeChat: return "微信支付"
+        case payTypeAlipay, 15: return "支付宝"
+        case payTypeWallet: return "余额支付"
+        default: return "支付方式 \(payType)"
+        }
+    }
+
+    /// 支付串藏在 `data` 的哪一层都可能，整棵 JSON 树翻一遍找最像支付串的那个值。
+    static let payParamKeys = [
+        "prepayParam", "payParam", "payParams", "payInfo", "payInfoStr", "payInfoJson",
+        "orderString", "orderStr", "prepayString", "payParamStr", "payData", "payContent",
+        "mweb_url", "mwebUrl", "h5_url", "h5Url", "code_url", "codeUrl", "payUrl", "pay_url"
+    ]
+
+    static func deepPayParam(in object: Any?) -> String {
+        guard let object = object else { return "" }
+        if let text = object as? String {
+            let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+            guard !trimmed.isEmpty, trimmed != "111111" else { return "" }
+            return trimmed
+        }
+        if let array = object as? [Any] {
+            for element in array {
+                let found = deepPayParam(in: element)
+                if !found.isEmpty { return found }
+            }
+            return ""
+        }
+        guard let dict = object as? [String: Any] else { return "" }
+        for key in payParamKeys {
+            if let value = dict[key] {
+                let found = deepPayParam(in: value)
+                if !found.isEmpty { return found }
+            }
+        }
+        for (_, value) in dict {
+            if value is [String: Any] || value is [Any] {
+                let found = deepPayParam(in: value)
+                if !found.isEmpty { return found }
+            }
+        }
+        return ""
+    }
+
+    /// 一条支付串要怎么交给对应 App：可能直接是 scheme、可能是 H5 地址、可能是一段扫码串、
+    /// 也可能是微信 App 支付参数（没有 SDK 就调不起来，只能提示）。
+    struct PayHandoff {
+        var scheme: URL?
+        var web: URL?
+        var qr: String?
+        var isWechatAppParam = false
+        var note: String = ""
+
+        var canOpen: Bool { scheme != nil || web != nil }
+        var showQR: Bool { !(qr ?? "").isEmpty }
+    }
+
+    static func handoff(param: String, payType: Int) -> PayHandoff {
+        var result = PayHandoff()
+        let raw = param.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !raw.isEmpty else {
+            result.note = "服务端没有返回支付串"
+            return result
+        }
+
+        // 微信 App 支付参数：noncestr / appid / partnerid / prepayid / paySign / timestamp
+        if let dict = jsonObject(raw) {
+            func text(_ keys: [String]) -> String {
+                for key in keys {
+                    if let value = dict[key] as? String, !value.isEmpty { return value }
+                    if let value = dict[key] as? NSNumber { return value.stringValue }
+                }
+                return ""
+            }
+            let mweb = text(["mweb_url", "mwebUrl"])
+            let h5 = text(["h5_url", "h5Url", "payUrl", "pay_url", "url"])
+            let codeURL = text(["code_url", "codeUrl"])
+            let prepayid = text(["prepayid", "prepayId", "prepay_id"])
+            let partnerid = text(["partnerid", "partnerId"])
+            let appid = text(["appid", "appId"])
+            let paySign = text(["paySign", "sign"])
+
+            if !codeURL.isEmpty { result.qr = codeURL }
+            if !mweb.isEmpty, let url = URL(string: mweb) { result.web = url }
+            else if !h5.isEmpty, let url = URL(string: h5) { result.web = url }
+            if !prepayid.isEmpty, !partnerid.isEmpty, !appid.isEmpty, !paySign.isEmpty {
+                result.isWechatAppParam = true
+                result.note = "这是微信 App 支付参数，需要微信 SDK 才能直接拉起；"
+                    + "已把参数复制到剪贴板，可在官方 App 里粘贴或改用余额。"
+            }
+            if result.qr == nil && result.web == nil && !result.isWechatAppParam {
+                result.note = "支付串里没有可用的跳转信息"
+            }
+            return result
+        }
+
+        if raw.hasPrefix("weixin://") || raw.hasPrefix("wxp://") {
+            result.scheme = URL(string: raw)
+            return result
+        }
+        if raw.lowercased().hasPrefix("http") {
+            result.web = URL(string: raw)
+            if payType == payTypeWeChat || payType == payTypeAlipay {
+                result.qr = raw
+            }
+            return result
+        }
+        if raw.hasPrefix("{") || raw.hasPrefix("[") {
+            result.note = "支付串格式无法识别"
+            return result
+        }
+
+        // 支付宝 orderString / 普通串：走支付宝收银台 scheme + 二维码
+        switch payType {
+        case payTypeAlipay, 15:
+            let encoded = Crypto.formEncode(raw)
+            result.scheme = URL(string: "alipays://platformapi/startapp?appId=20000125&orderSuffix=\(encoded)")
+            result.qr = result.scheme?.absoluteString ?? raw
+        case payTypeWeChat:
+            result.qr = raw
+            result.note = "微信返回的是原始串，先用微信「扫一扫」扫下面的二维码"
+        default:
+            result.qr = raw
+        }
+        return result
+    }
+
+    static func jsonObject(_ raw: String) -> [String: Any]? {
+        guard raw.hasPrefix("{"), let data = raw.data(using: .utf8) else { return nil }
+        return (try? JSONSerialization.jsonObject(with: data)) as? [String: Any]
     }
 
     /// 充值走官方 H5。真正的充值页是 `buyGold`（通用小票充值，只需 shopId），
