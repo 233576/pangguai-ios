@@ -116,18 +116,43 @@ struct PaySheet: View {
                                 Text("这笔订单还没拿到\(payLabel)支付串")
                                     .font(.system(size: 14, weight: .semibold))
                                     .foregroundStyle(Flat.textPrimary)
-                                Text("点「重新取支付串」再试一次，订单号 \(current.orderId)")
+                                Text("点「重新取支付串」会依次试支付宝 / 微信 / 钱包，订单号 \(current.orderId)")
                                     .font(.system(size: 12))
                                     .multilineTextAlignment(.center)
                                     .foregroundStyle(Flat.textTertiary)
+                                if let reason = store.lastPrepayError, !reason.isEmpty {
+                                    Text(reason)
+                                        .font(.system(size: 11))
+                                        .multilineTextAlignment(.leading)
+                                        .foregroundStyle(Flat.orange)
+                                        .textSelection(.enabled)
+                                        .frame(maxWidth: .infinity, alignment: .leading)
+                                        .padding(10)
+                                        .background(Flat.surfaceLow)
+                                        .clipShape(RoundedRectangle(cornerRadius: 8))
+                                }
                                 Button {
-                                    Task { await store.reopenPrepay() }
+                                    Task {
+                                        switching = true
+                                        await store.reopenPrepay()
+                                        switching = false
+                                        if let param = store.pending?.prepayParam, !param.isEmpty {
+                                            payTypeOverride = store.pending?.payType
+                                        } else if let reason = store.lastPrepayError {
+                                            alertMessage = reason
+                                        }
+                                    }
                                 } label: {
-                                    Text("重新取支付串")
-                                        .font(.system(size: 14, weight: .semibold))
-                                        .frame(maxWidth: .infinity)
+                                    HStack(spacing: 6) {
+                                        if switching { ProgressView().tint(Flat.textPrimary) }
+                                        Text(switching ? "取支付串…" : "重新取支付串")
+                                            .font(.system(size: 14, weight: .semibold))
+                                    }
+                                    .frame(maxWidth: .infinity)
+                                    .contentShape(Rectangle())
                                 }
                                 .buttonStyle(FlatButtonStyle(tint: Flat.accent, filled: false, height: 46))
+                                .disabled(switching)
                             }
                             .padding(16)
                             .flatCard()
