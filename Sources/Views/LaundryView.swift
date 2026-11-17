@@ -77,7 +77,7 @@ struct LaundryView: View {
             titleVisibility: .visible
         ) {
             if let sku = confirming {
-                Button("支付 \(sku.priceText)") {
+                Button("用\(PGProtocol.payTitle(store.settings.payType))付 \(sku.priceText)") {
                     let target = sku
                     confirming = nil
                     Task {
@@ -428,6 +428,9 @@ struct LaundryView: View {
                     .foregroundStyle(Flat.textPrimary)
                 Text(pending.machineName.isEmpty ? pending.orderId : pending.machineName)
                     .font(.system(size: 12))
+                    .foregroundStyle(Flat.textTertiary)
+                Text("\(PGProtocol.payTitle(pending.payType)) · ¥\(pending.price.isEmpty ? "0.00" : pending.price)")
+                    .font(.system(size: 11))
                     .foregroundStyle(Flat.textTertiary)
             }
             Spacer()
