@@ -402,38 +402,21 @@ final class AppStore: ObservableObject {
             errorMessage = "下单没有返回订单号"
             return false
         }
-        log("下单成功 orderId=\(orderId)，取支付串")
+        log("下单成功 orderId=\(orderId)，走余额支付")
 
         await loadPayOptions(detail)
-        let preferred = payOptions.first(where: { $0.isDefault })?.type ?? settings.payType
-        let outcome = await requestPrePay(orderNo: orderId, preferred: preferred)
+        let outcome = await requestPrePay(orderNo: orderId)
         busyText = ""
         if outcome.walletPaid {
             lastPrepayError = nil
             pending = nil
             persistPending()
-            noticeMessage = "已用钱包余额付掉 \(orderId)"
-            log("钱包余额支付成功 \(orderId)")
+            noticeMessage = "已用余额付掉 \(orderId)"
             await refreshOrders()
+            await refreshProfile()
             return true
         }
-        guard let picked = outcome.picked else {
-            lastPrepayError = outcome.detail
-            errorMessage = "订单已创建（\(orderId)），但取支付串失败：\(outcome.detail)"
-            pending = PendingPayment(orderId: orderId,
-                                     goodsId: detail.goodsId,
-                                     skuId: sku.skuId,
-                                     skuName: sku.name,
-                                     price: sku.price,
-                                     machineName: detail.name,
-                                     orgName: detail.orgName,
-                                     payType: settings.payType,
-                                     prepayParam: "",
-                                     createdAt: Date())
-            persistPending()
-            await refreshOrders()
-            return false
-        }
+        lastPrepayError = outcome.detail
         pending = PendingPayment(orderId: orderId,
                                  goodsId: detail.goodsId,
                                  skuId: sku.skuId,
@@ -441,56 +424,45 @@ final class AppStore: ObservableObject {
                                  price: sku.price,
                                  machineName: detail.name,
                                  orgName: detail.orgName,
-                                 payType: picked.payType,
-                                 prepayParam: picked.param,
+                                 payType: PGProtocol.payTypeWallet,
+                                 prepayParam: "",
                                  createdAt: Date())
-        lastPrepayError = nil
         persistPending()
-        log("支付串已就绪（\(picked.param.count) 字符，payType=\(picked.payType)）")
         await refreshOrders()
-        return true
+        errorMessage = "订单已创建（\(orderId)），余额支付没成功：\(outcome.detail)"
+        return false
     }
 
     func reopenPrepay() async {
         guard let current = pending else { return }
-        busyText = "重新取支付串…"
+        busyText = "余额支付中…"
         if payOptions.isEmpty, let detail = device {
             await loadPayOptions(detail)
         }
-        let outcome = await requestPrePay(orderNo: current.orderId, preferred: current.payType)
+        let outcome = await requestPrePay(orderNo: current.orderId)
         busyText = ""
         if outcome.walletPaid {
+            lastPrepayError = nil
             pending = nil
             persistPending()
-            lastPrepayError = nil
-            noticeMessage = "已用钱包余额付掉 \(current.orderId)"
+            noticeMessage = "已用余额付掉 \(current.orderId)"
             await refreshOrders()
+            await refreshProfile()
             return
         }
-        guard let picked = outcome.picked else {
-            lastPrepayError = outcome.detail
-            errorMessage = outcome.detail
-            return
-        }
-        pending?.prepayParam = picked.param
-        pending?.payType = picked.payType
-        lastPrepayError = nil
-        persistPending()
-        noticeMessage = "已取到\(PGProtocol.payTitle(picked.payType))支付串（\(picked.param.count) 字符）"
+        lastPrepayError = outcome.detail
+        errorMessage = outcome.detail
     }
 
-    /// 依次试几条支付渠道，把每一次的原始 code/msg 都记进日志。
-    /// 服务端对「渠道没开通 / 订单状态不对」只回一句 msg，不同网点开通的渠道也不一样，
-    /// 所以这里不猜，直接挨个问一遍，拿到第一个有串的就用。
     struct PrePayOutcome {
         var picked: (payType: Int, param: String)?
         var detail: String
-        /// 钱包余额已经直接扣掉了（不需要二维码）。
+        /// 余额已经直接扣掉了（不需要二维码）。
         var walletPaid: Bool = false
     }
 
-    /// 问服务端这台机器开了哪些渠道。prePay 的 `payTypeList` 只在渠道缺失时才出现，
-    /// 而且会对未开通的渠道回 code=0 + 空串，所以必须单独问一次。
+    /// 问服务端这台机器开了哪些渠道，只用来打日志。
+    /// 洗衣机在这里一律走余额，其它渠道拿到也签不出支付串。
     func loadPayOptions(_ detail: PGDeviceDetail) async {
         let response = await client.availablePayTypes(goodsId: detail.goodsId,
                                                       shopId: detail.shopId,
@@ -498,120 +470,56 @@ final class AppStore: ObservableObject {
                                                       imei: detail.deviceId,
                                                       categoryCode: detail.categoryCode)
         let options = response.payOptions
+        payOptions = options
         if response.ok, !options.isEmpty {
-            payOptions = options
-            let text = options.map { "\($0.type)=\($0.title)\($0.isDefault ? "（默认）" : "")" }
-                .joined(separator: "、")
-            log("这台机器可用支付方式 \(options.count) 种：\(text)")
+            let text = options.map { "\($0.type)=\($0.title)" }.joined(separator: "、")
+            log("这台机器可用支付方式：\(text)（本 App 统一走余额）")
         } else {
-            payOptions = []
             log("可用支付方式查询失败：code=\(response.code) \(response.message)")
         }
     }
 
-    func requestPrePay(orderNo: String, preferred: Int) async -> PrePayOutcome {
-        var types: [Int] = [preferred]
-        if let fallback = payOptions.first(where: { $0.isDefault })?.type,
-           !types.contains(fallback) {
-            types.append(fallback)
-        }
-        for option in payOptions where !types.contains(option.type) {
-            types.append(option.type)
-        }
-        for candidate in [PGProtocol.payTypeAlipay, PGProtocol.payTypeWeChat,
-                          PGProtocol.payTypeWallet, 15] where !types.contains(candidate) {
-            types.append(candidate)
-        }
-        var notes: [String] = []
+    /// 这个平台对洗衣机只走余额：prePay 不会签发任何支付串，真正扣款是 `/pay/unify/pay`。
+    /// 所以这里不再挨个渠道试，直接走余额。
+    func requestPrePay(orderNo: String) async -> PrePayOutcome {
         lastPrepayRaw = ""
-        for type in types {
-            let response = await client.prePay(orderNo: orderNo, payType: type)
-            let title = PGProtocol.payTitle(type)
-            if response.ok {
-                let data = response.dataObject ?? [:]
-                let param = PGProtocol.deepPayParam(in: data)
-                if param.isEmpty {
-                    let list = response.payTypeList
-                    let listText = list.isEmpty ? "" : "（服务端只开了 payType \(list.map(String.init).joined(separator: "/"))）"
-                    let note = "\(title)（payType=\(type)）→ code=0 但没有支付串\(listText)"
-                    notes.append(note)
-                    lastPrepayRaw = "payType=\(type)\n\(response.body)"
-                    log("取支付串 \(note)")
-                    log("原始响应：\(String(response.body.prefix(1200)))")
-                    if type == PGProtocol.payTypeWallet {
-                        let wallet = await client.walletPay(orderNo: orderNo)
-                        if wallet.ok {
-                            log("钱包余额直接扣款成功：\(wallet.message)")
-                            return PrePayOutcome(picked: nil,
-                                                 detail: notes.joined(separator: "；"),
-                                                 walletPaid: true)
-                        }
-                        let walletNote = "钱包扣款 → code=\(wallet.code) \(wallet.message)"
-                        notes.append(walletNote)
-                        lastPrepayRaw = "walletPay\n\(wallet.body)"
-                        log(walletNote)
-                        log("原始响应：\(String(wallet.body.prefix(1200)))")
-                    }
-                } else {
-                    lastPrepayRaw = ""
-                    log("取支付串成功：\(title)（payType=\(type)）\(param.count) 字符")
-                    return PrePayOutcome(picked: (type, param),
-                                         detail: notes.joined(separator: "；"))
-                }
-            } else {
-                let note = "\(title)（payType=\(type)）→ code=\(response.code) \(response.message)"
-                notes.append(note)
-                lastPrepayRaw = "payType=\(type)\n\(response.body)"
-                log("取支付串 \(note)")
-                log("原始响应：\(String(response.body.prefix(1200)))")
-                if response.isUnauthorized {
-                    return PrePayOutcome(picked: nil, detail: "登录已失效，请重新登录后再试")
-                }
-            }
+        let wallet = await client.walletPay(orderNo: orderNo)
+        lastPrepayRaw = "walletPay\n\(wallet.body)"
+        if wallet.ok {
+            log("余额支付成功 \(orderNo)")
+            return PrePayOutcome(picked: nil, detail: "", walletPaid: true)
         }
-        return PrePayOutcome(picked: nil, detail: notes.joined(separator: "\n"))
+        if wallet.isUnauthorized {
+            return PrePayOutcome(picked: nil, detail: "登录已失效，请重新登录后再试")
+        }
+        log("余额支付失败 → code=\(wallet.code) \(wallet.message)")
+        log("原始响应：\(String(wallet.body.prefix(1200)))")
+        return PrePayOutcome(picked: nil, detail: "余额支付失败：\(wallet.friendlyMessage)")
     }
 
-    /// 在待支付面板里切换支付宝 / 微信：拿同一个订单号重新取一次支付串。
-    /// 返回非 nil 表示失败原因，交给支付面板直接弹出来（挂在这个页面上，用户才看得见）。
+    /// 支付面板上的「立即支付」：扣余额。
+    /// 返回非 nil 表示失败原因，交给面板直接弹出来。
     @discardableResult
-    func switchPayType(_ type: Int) async -> String? {
-        guard var current = pending else { return "没有待支付订单" }
-        guard current.payType != type else { return nil }
-        busyText = "切换为\(PGProtocol.payTitle(type))…"
-        if type == PGProtocol.payTypeWallet {
-            let wallet = await client.walletPay(orderNo: current.orderId)
-            busyText = ""
-            if wallet.ok {
-                pending = nil
-                persistPending()
-                log("钱包余额支付成功 \(current.orderId)")
-                noticeMessage = "已用钱包余额付掉 \(current.orderId)"
-                await refreshOrders()
-                return nil
-            }
-            log("钱包扣款失败 → code=\(wallet.code) \(wallet.message)")
-            let balance = (user?.balance ?? "").trimmingCharacters(in: .whitespaces)
-            return "钱包扣款失败：\(wallet.friendlyMessage)（当前余额 \(balance.isEmpty ? "未知" : "¥" + balance)）"
-        }
-        let prepay = await client.prePay(orderNo: current.orderId, payType: type)
+    func payWithWallet() async -> String? {
+        guard let current = pending else { return "没有待支付订单" }
+        busyText = "余额支付中…"
+        let wallet = await client.walletPay(orderNo: current.orderId)
         busyText = ""
-        guard prepay.ok else {
-            log("切换支付方式失败 → code=\(prepay.code) \(prepay.message)")
-            return "切换为\(PGProtocol.payTitle(type))失败：\(prepay.friendlyMessage)"
+        if wallet.ok {
+            pending = nil
+            persistPending()
+            log("余额支付成功 \(current.orderId)")
+            noticeMessage = "已用余额付掉 \(current.orderId)"
+            await refreshOrders()
+            await refreshProfile()
+            return nil
         }
-        let data = prepay.dataObject ?? [:]
-        let param = PGProtocol.deepPayParam(in: data)
-        current.payType = type
-        current.prepayParam = param
-        pending = current
-        persistPending()
-        log("支付方式切换为 \(PGProtocol.payTitle(type))，支付串 \(param.count) 字符")
-        if param.isEmpty {
-            return "服务端没有返回\(PGProtocol.payTitle(type))支付串（可能这个渠道没开通）。可以切回支付宝，或点「重新取支付串」再试。"
-        }
-        return nil
+        log("余额支付失败 → code=\(wallet.code) \(wallet.message)")
+        log("原始响应：\(String(wallet.body.prefix(1200)))")
+        lastPrepayRaw = "walletPay\n\(wallet.body)"
+        return wallet.friendlyMessage
     }
+
 
     /// 查这笔单付了没；已付就把本地挂单清掉。
     func checkPendingPayment() async -> Bool {
