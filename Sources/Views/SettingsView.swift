@@ -98,45 +98,78 @@ struct SettingsView: View {
 
     private var payCard: some View {
         VStack(alignment: .leading, spacing: 12) {
-            FlatSectionHeader(title: "支付方式")
+            FlatSectionHeader(title: "默认支付方式")
+            VStack(spacing: 8) {
+                payOption(title: "微信支付", detail: "下单后出微信付款码 / 唤起微信",
+                          tint: Flat.green, icon: "message.fill",
+                          type: PGProtocol.payTypeWeChat)
+                payOption(title: "支付宝", detail: "下单后出支付宝付款码",
+                          tint: Flat.accent, icon: "a.circle.fill",
+                          type: PGProtocol.payTypeAlipay)
+                payOption(title: "余额支付", detail: "直接扣余额，余额 ¥\(store.user?.balanceText ?? "—")",
+                          tint: Flat.orange, icon: "wallet.bifold.fill",
+                          type: PGProtocol.payTypeWallet)
+            }
+
             HStack(spacing: 10) {
-                ZStack {
-                    Circle().fill(Flat.orange.opacity(0.16)).frame(width: 38, height: 38)
-                    Image(systemName: "wallet.bifold.fill")
-                        .font(.system(size: 15, weight: .semibold))
-                        .foregroundStyle(Flat.orange)
-                }
-                VStack(alignment: .leading, spacing: 3) {
-                    Text("余额支付")
-                        .font(.system(size: 15, weight: .semibold))
-                        .foregroundStyle(Flat.textPrimary)
-                    Text("当前余额 ¥ \(store.user?.balanceText ?? "—")")
-                        .font(.system(size: 12))
-                        .foregroundStyle(Flat.textTertiary)
-                }
-                Spacer()
                 Button {
                     showingRecharge = true
                 } label: {
-                    Text("充值")
+                    Text("充值店铺余额")
                         .font(.system(size: 13, weight: .semibold))
-                        .foregroundStyle(Flat.orange)
-                        .padding(.horizontal, 14)
-                        .padding(.vertical, 8)
-                        .background(
-                            RoundedRectangle(cornerRadius: 10, style: .continuous)
-                                .fill(Flat.orange.opacity(0.15))
-                        )
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 40)
                 }
-                .buttonStyle(.plain)
+                .buttonStyle(FlatButtonStyle(tint: Flat.orange, filled: false, height: 40))
             }
-            Text("这台机器只支持余额扣款：下单后一次点击就扣余额、机器直接启动，不需要扫码。余额可在官方充值页充。")
+
+            Text("支付面板里还能随时换渠道，订单号不变。余额不足时用微信/支付宝扫码即可。")
                 .font(.system(size: 11))
                 .foregroundStyle(Flat.textTertiary)
                 .fixedSize(horizontal: false, vertical: true)
         }
         .padding(16)
         .flatCard()
+    }
+
+    private func payOption(title: String, detail: String, tint: Color,
+                           icon: String, type: Int) -> some View {
+        Button {
+            store.setPayType(type)
+        } label: {
+            HStack(spacing: 10) {
+                ZStack {
+                    Circle().fill(tint.opacity(0.16)).frame(width: 34, height: 34)
+                    Image(systemName: icon)
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundStyle(tint)
+                }
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(title)
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundStyle(Flat.textPrimary)
+                    Text(detail)
+                        .font(.system(size: 11))
+                        .foregroundStyle(Flat.textTertiary)
+                }
+                Spacer()
+                Image(systemName: store.settings.payType == type ? "checkmark.circle.fill" : "circle")
+                    .font(.system(size: 17, weight: .semibold))
+                    .foregroundStyle(store.settings.payType == type ? tint : Flat.textTertiary)
+            }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 10)
+            .background(
+                RoundedRectangle(cornerRadius: Flat.controlRadius, style: .continuous)
+                    .fill(store.settings.payType == type ? tint.opacity(0.10) : Flat.surfaceHigh)
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: Flat.controlRadius, style: .continuous)
+                    .strokeBorder(store.settings.payType == type ? tint.opacity(0.45) : Flat.stroke,
+                                  lineWidth: 1)
+            )
+        }
+        .buttonStyle(.plain)
     }
 
     private var refreshCard: some View {
