@@ -43,7 +43,18 @@ struct LaundryView: View {
             }
         }
         .sheet(isPresented: $showingLogin) {
-            LoginSheet().environmentObject(store)
+            LoginSheet {
+                let target = code.trimmingCharacters(in: .whitespaces)
+                guard !target.isEmpty else { return }
+                Task { _ = await store.resolve(code: target) }
+            }
+            .environmentObject(store)
+        }
+        .onChange(of: store.needsLogin) { wanted in
+            guard wanted else { return }
+            store.needsLogin = false
+            showingScan = false
+            showingLogin = true
         }
         .sheet(isPresented: $showingScan) {
             ScanSheet { scanned in
@@ -176,9 +187,22 @@ struct LaundryView: View {
 
     private var scanCard: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("机器码")
-                .font(.system(size: 13, weight: .semibold))
-                .foregroundStyle(Flat.textSecondary)
+            HStack {
+                Text("机器码")
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundStyle(Flat.textSecondary)
+                if !store.loggedIn {
+                    Text("先登录")
+                        .font(.system(size: 11, weight: .semibold))
+                        .foregroundStyle(Flat.orange)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 3)
+                        .background(
+                            Capsule().fill(Flat.orange.opacity(0.16))
+                        )
+                }
+                Spacer()
+            }
 
             HStack(spacing: 10) {
                 TextField("扫码得到的码，或直接粘贴", text: $code)
@@ -187,7 +211,12 @@ struct LaundryView: View {
                     .flatField()
 
                 Button {
-                    showingScan = true
+                    if store.loggedIn {
+                        showingScan = true
+                    } else {
+                        store.errorMessage = nil
+                        showingLogin = true
+                    }
                 } label: {
                     Image(systemName: "qrcode.viewfinder")
                         .font(.system(size: 17, weight: .semibold))
@@ -196,13 +225,25 @@ struct LaundryView: View {
                 .buttonStyle(FlatButtonStyle(tint: Flat.surfaceHigh, filled: false, height: 46))
             }
 
+            if !store.loggedIn {
+                Text("扫码接口必须带登录凭证，未登录时服务端会回一句「版本过低」，其实是没登录。")
+                    .font(.system(size: 11))
+                    .foregroundStyle(Flat.textTertiary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+
             Button {
-                let target = code
-                Task { _ = await store.resolve(code: target) }
+                if store.loggedIn {
+                    let target = code
+                    Task { _ = await store.resolve(code: target) }
+                } else {
+                    store.errorMessage = nil
+                    showingLogin = true
+                }
             } label: {
                 HStack(spacing: 8) {
                     if store.isBusy { ProgressView().tint(.white) }
-                    Text(store.isBusy ? store.busyText : "查询这台洗衣机")
+                    Text(store.isBusy ? store.busyText : (store.loggedIn ? "查询这台洗衣机" : "登录后查询"))
                         .font(.system(size: 16, weight: .semibold))
                 }
                 .frame(maxWidth: .infinity)
