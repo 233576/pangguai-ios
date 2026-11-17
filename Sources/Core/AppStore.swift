@@ -349,7 +349,14 @@ final class AppStore: ObservableObject {
             errorMessage = "机器码没有对应到设备"
             return false
         }
-        log("扫码 \(cleaned) → goodsId \(goodsId)")
+        let categoryName = data.text("categoryName")
+        if !categoryName.isEmpty, !categoryName.contains("洗衣") {
+            busyText = ""
+            errorMessage = "这台设备是「\(categoryName)」，本 App 只支持洗衣机"
+            log("扫码 \(cleaned) → 分类是 \(categoryName)，已拒绝")
+            return false
+        }
+        log("扫码 \(cleaned) → goodsId \(goodsId) · shopId \(data.text("shopId")) · \(categoryName)")
         let ok = await loadDevice(goodsId: goodsId)
         busyText = ""
         return ok
@@ -637,28 +644,8 @@ final class AppStore: ObservableObject {
 
     // MARK: - 工具
 
-    /// 扫码结果可能是链接，也可能是 `NQT=xxx&…`，这里取出机器码。
+    /// 扫码结果可能是官方链接（`https://h5.qiekj.com/skip?…&NQT=…`），也可能是 `NQT=xxx&…` 或裸机器码。
     func normalizedCode(_ raw: String) -> String {
-        let text = raw.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !text.isEmpty else { return "" }
-        if let url = URL(string: text), let components = URLComponents(url: url, resolvingAgainstBaseURL: false) {
-            for item in components.queryItems ?? [] {
-                let name = item.name.uppercased()
-                if (name == "NQT" || name == "IMEI" || name == "SN"), let value = item.value, !value.isEmpty {
-                    return value
-                }
-            }
-        }
-        let separators = CharacterSet(charactersIn: "&?; ")
-        for pair in text.components(separatedBy: separators) {
-            let parts = pair.split(separator: "=", maxSplits: 1, omittingEmptySubsequences: false)
-            if parts.count == 2 {
-                let key = parts[0].uppercased()
-                if key == "NQT" || key == "IMEI" || key == "SN" {
-                    return String(parts[1])
-                }
-            }
-        }
-        return text
+        PGProtocol.machineCode(from: raw)
     }
 }
