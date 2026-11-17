@@ -15,18 +15,26 @@ enum PGProtocol {
     /// 洗衣机分类码：`/goods/latestUsed` 只认这个值。
     static let categoryCode = "wash"
 
-    /// 支付宝主动支付。13 = 支付宝，15 = 支付宝免密，2 = 钱包，32 = 微信。
-    static let payTypeAlipay = 13
+    /// 洗衣机这边只支持余额扣款（`/pay/unify/pay`）。
+    /// 这台网点对 13 支付宝、32 微信只会回 `payTypeList:[2]` + 空支付串，所以界面上不再提供它们。
     static let payTypeWallet = 2
-    static let payTypeWeChat = 32
 
     static func payTitle(_ payType: Int) -> String {
-        switch payType {
-        case payTypeAlipay, 15: return "支付宝"
-        case payTypeWeChat: return "微信支付"
-        case payTypeWallet: return "钱包余额"
-        default: return "在线支付"
-        }
+        payType == payTypeWallet ? "余额支付" : "余额支付"
+    }
+
+    /// 充值走官方 H5：`user/recharge/operatorInfo/operatorInfo?operatorId=..&shopName=..&token=..`
+    static let h5Base = "https://h5.qiekj.com/"
+
+    static func rechargeURL(token: String, orgId: String, shopName: String) -> URL? {
+        guard !token.isEmpty else { return nil }
+        var components = URLComponents(string: h5Base + "user/recharge/operatorInfo/operatorInfo")
+        components?.queryItems = [
+            URLQueryItem(name: "operatorId", value: orgId),
+            URLQueryItem(name: "shopName", value: shopName),
+            URLQueryItem(name: "token", value: token)
+        ]
+        return components?.url
     }
 
     static func userAgent() -> String {
@@ -49,198 +57,6 @@ enum PGProtocol {
         return Crypto.sha256Hex(raw)
     }
 
-    /// 支付宝收银台入口，可直接放进二维码让支付宝「扫一扫」识别。
-    static func alipayScheme(for orderString: String) -> URL? {
-        let allowed = CharacterSet(charactersIn:
-            "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~")
-        guard let encoded = orderString.addingPercentEncoding(withAllowedCharacters: allowed) else {
-            return nil
-        }
-        return URL(string: "alipays://platformapi/startapp?appId=20000125&orderSuffix=\(encoded)")
-    }
-
-    /// 二维码里放的内容：
-    /// 1. 已经是 scheme / http 链接 → 原样；
-    /// 2. 支付宝 orderString（`app_id=…&sign=…`）→ 转成官方 scheme，扫码即可拉起收银台。
-    static func qrContent(for param: String) -> String {
-        let trimmed = param.trimmingCharacters(in: .whitespacesAndNewlines)
-        let lower = trimmed.lowercased()
-        if lower.hasPrefix("alipays://") || lower.hasPrefix("alipayqr://") || lower.hasPrefix("http") {
-            return trimmed
-        }
-        return alipayScheme(for: trimmed)?.absoluteString ?? trimmed
-    }
-
-    /// 依次尝试的跳转入口。
-    static func paymentCandidates(for param: String) -> [URL] {
-        let trimmed = param.trimmingCharacters(in: .whitespacesAndNewlines)
-        var list: [URL] = []
-        let lower = trimmed.lowercased()
-        if lower.hasPrefix("alipays://") || lower.hasPrefix("alipayqr://") || lower.hasPrefix("http"),
-           let url = URL(string: trimmed) {
-            list.append(url)
-        }
-        if let scheme = alipayScheme(for: trimmed) {
-            list.append(scheme)
-            // 支付宝「扫一扫」入口：把上面那条 scheme 当二维码内容喂给它，
-            // 装不上收银台 scheme 的老版本也能落到扫码页。
-            let qrPayload = scheme.absoluteString
-            let allowed = CharacterSet(charactersIn:
-                "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~")
-            if let encodedQR = qrPayload.addingPercentEncoding(withAllowedCharacters: allowed),
-               let qrScheme = URL(string: "alipayqr://platformapi/startapp?saId=10000007&qrcode=\(encodedQR)") {
-                list.append(qrScheme)
-            }
-        }
-        if let home = URL(string: "alipays://") {
-            list.append(home)
-        }
-        let encoded = trimmed.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed)
-            ?? trimmed
-        if let web = URL(string: "https://openapi.alipay.com/gateway.do?\(encoded)") {
-            list.append(web)
-        }
-        return list
-    }
-
-    // MARK: - 微信
-
-    /// 把 prepayParam 解析成 JSON 对象（微信侧经常返回 JSON 字符串）。
-    static func jsonObject(_ param: String) -> [String: Any]? {
-        let trimmed = param.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard trimmed.hasPrefix("{") else { return nil }
-        guard let data = trimmed.data(using: .utf8) else { return nil }
-        return (try? JSONSerialization.jsonObject(with: data)) as? [String: Any]
-    }
-
-    /// 微信支付能放进二维码的地址：优先 native 支付码（code_url），
-    /// 其次是 H5 支付链接（mweb_url），最后才原样返回。
-    static func wechatQRText(for param: String) -> String {
-        let trimmed = param.trimmingCharacters(in: .whitespacesAndNewlines)
-        let lower = trimmed.lowercased()
-        if lower.hasPrefix("weixin://") || lower.hasPrefix("http") || lower.hasPrefix("wxp://") {
-            return trimmed
-        }
-        if let obj = jsonObject(trimmed) {
-            let qrKeys = ["code_url", "codeUrl", "codeurl", "qr_code", "qrCode", "qrurl", "qrUrl"]
-            for key in qrKeys {
-                if let value = obj[key] as? String, !value.isEmpty { return value }
-            }
-            let webKeys = ["mweb_url", "mwebUrl", "h5_url", "h5Url", "payUrl", "pay_url", "url"]
-            for key in webKeys {
-                if let value = obj[key] as? String, !value.isEmpty { return value }
-            }
-        }
-        return trimmed
-    }
-
-    /// 微信侧跳转候选：先试支付串里的真实链接，最后退回「打开微信」。
-    static func wechatCandidates(for param: String) -> [URL] {
-        let text = wechatQRText(for: param)
-        var list: [URL] = []
-        if let url = URL(string: text), let scheme = url.scheme?.lowercased(),
-           scheme == "weixin" || scheme == "wxp" || scheme == "https" || scheme == "http" {
-            list.append(url)
-        }
-        if let app = URL(string: "weixin://") {
-            list.append(app)
-        }
-        return list
-    }
-
-    /// 微信 App 支付串（appid/partnerid/prepayid/sign）无法用 URL 直接拉起，
-    /// 只能提示用户走扫码；这里判断一下是不是这种形态。
-    static func wechatNeedsNativeApp(param: String) -> Bool {
-        guard let obj = jsonObject(param) else { return false }
-        return obj["prepayid"] != nil || obj["partnerid"] != nil || obj["package"] != nil
-    }
-
-    /// 任意支付方式下二维码里应该放的内容。
-    static func qrContent(for param: String, payType: Int) -> String {
-        if payType == payTypeWeChat {
-            return wechatQRText(for: param)
-        }
-        return qrContent(for: param)
-    }
-
-    // MARK: - 支付串兜底提取
-
-    /// 不同网点、不同版本的接口会把支付串塞进不同字段（prepayParam / payInfo / payParams /
-    /// orderString …），有的还会再包一层 JSON 字符串。这里不去猜某一家，直接把整棵
-    /// data 树翻一遍，按优先级取第一个「看着像支付串」的值。
-    static func deepPayParam(in object: Any?) -> String {
-        guard let object = object else { return "" }
-        if let dict = object as? [String: Any] {
-            for key in payParamKeys {
-                if let text = payText(dict[key]) { return text }
-            }
-            for (_, value) in dict {
-                if let text = payText(value) { return text }
-            }
-            for (_, value) in dict {
-                let nested = deepPayParam(in: value)
-                if !nested.isEmpty { return nested }
-            }
-        }
-        if let array = object as? [Any] {
-            for item in array {
-                let nested = deepPayParam(in: item)
-                if !nested.isEmpty { return nested }
-            }
-        }
-        return ""
-    }
-
-    private static let payParamKeys = [
-        "prepayParam", "payParam", "payParams", "payInfo", "payInfoStr", "payInfoJson",
-        "orderString", "orderStr", "prepayString", "payParamStr", "payData", "payContent",
-        "payUrl", "mweb_url", "code_url", "tradeNo"
-    ]
-
-    private static func payText(_ value: Any?) -> String? {
-        if let text = value as? String {
-            let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
-            return looksLikePayParam(trimmed) ? trimmed : nil
-        }
-        if let dict = value as? [String: Any] {
-            let nested = deepPayParam(in: dict)
-            return nested.isEmpty ? nil : nested
-        }
-        return nil
-    }
-
-    /// 判断一段文本是不是「支付串」。太短的不算，避免把订单号当成支付串。
-    static func looksLikePayParam(_ text: String) -> Bool {
-        guard text.count >= 24 else { return false }
-        let lower = text.lowercased()
-        if lower.hasPrefix("alipay_sdk") || lower.contains("biz_content") { return true }
-        if lower.contains("app_id=") && lower.contains("sign=") { return true }
-        if lower.hasPrefix("weixin://") || lower.hasPrefix("wxp://") { return true }
-        if lower.hasPrefix("https://qr.alipay.com") { return true }
-        if text.hasPrefix("{") || text.hasPrefix("[") { return true }
-        if lower.hasPrefix("http") && text.count >= 48 { return true }
-        return false
-    }
-
-    /// 打开对应 App 的「扫一扫」页面（用户再从相册选刚保存的二维码）。
-    /// 这条路比直接调起收银台稳得多：收银台入口各版本时常被废弃，扫一扫一直是受支持的入口。
-    static func qrScanScheme(payType: Int) -> URL? {
-        if payType == payTypeWeChat {
-            return URL(string: "weixin://scanqrcode")
-        }
-        return URL(string: "alipays://platformapi/startapp?saId=10000007")
-    }
-
-    /// 能在 Safari 里打开的支付页。
-    /// 微信 H5 支付（mweb_url）只有从浏览器发起，微信才会接管；支付宝可以退回网关页。
-    static func safariPayURL(for param: String, payType: Int) -> URL? {
-        let text = payType == payTypeWeChat ? wechatQRText(for: param) : qrContent(for: param)
-        let lower = text.lowercased()
-        if lower.hasPrefix("http"), let url = URL(string: text) { return url }
-        if payType == payTypeWeChat { return nil }
-        let encoded = param.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? param
-        return URL(string: "https://openapi.alipay.com/gateway.do?\(encoded)")
-    }
 }
 
 /// 统一响应包装。code == 0 为成功；2 / 401 表示未登录。
