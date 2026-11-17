@@ -1,0 +1,74 @@
+name: Build unsigned IPA
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: macos-15-intel
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Show toolchain
+        run: |
+          xcodebuild -version
+          xcrun --sdk iphoneos --show-sdk-version
+          swift --version
+
+      - name: Install XcodeGen
+        run: |
+          brew install xcodegen
+          xcodegen --version
+
+      - name: Generate project
+        run: xcodegen generate --spec project.yml
+
+      - name: Build
+        run: |
+          set -o pipefail
+          mkdir -p build
+          xcodebuild \
+            -project Pangguai.xcodeproj \
+            -scheme Pangguai \
+            -configuration Release \
+            -sdk iphoneos \
+            -destination 'generic/platform=iOS' \
+            -derivedDataPath build \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY="" \
+            DEVELOPMENT_TEAM="" \
+            build 2>&1 | tee build/xcodebuild.log
+
+      - name: Package IPA
+        run: bash scripts/package-ipa.sh
+
+      - name: Inspect product
+        run: |
+          APP="build/Build/Products/Release-iphoneos/Pangguai.app"
+          /usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "$APP/Info.plist"
+          /usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' "$APP/Info.plist"
+          /usr/libexec/PlistBuddy -c 'Print :MinimumOSVersion' "$APP/Info.plist"
+          lipo -info "$APP/Pangguai" || file "$APP/Pangguai"
+          ls -lh dist
+
+      - name: Upload IPA
+        uses: actions/upload-artifact@v4
+        with:
+          name: Pangguai-unsigned-ipa
+          path: |
+            dist/Pangguai-unsigned.ipa
+            dist/Pangguai-unsigned-app.zip
+          if-no-files-found: error
+
+      - name: Upload build log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: xcodebuild-log
+          path: build/xcodebuild.log
+          if-no-files-found: warn
