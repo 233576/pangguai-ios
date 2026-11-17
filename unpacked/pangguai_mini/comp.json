@@ -1,0 +1,3 @@
+GLOBAL__ === 'undefined') {__WXML_GLOBAL__={};
+}__WXML_GLOBAL__.modules = __WXML_GLOBAL__.modules || {};
+function _(a,b){i
