@@ -22,11 +22,11 @@ struct LaundryView: View {
                     accountCard
 
                     if let running = store.runningOrder {
-                        WashProgressCard(order: running, now: store.now)
+                        WashProgressCard(order: running, now: store.now, alert: store.deviceAlert)
                     } else if let paid = store.latestPaidOrder,
                               let end = paid.endsAt,
                               end.timeIntervalSince(store.now) > -300 {
-                        WashProgressCard(order: paid, now: store.now)
+                        WashProgressCard(order: paid, now: store.now, alert: store.deviceAlert)
                     }
 
                     scanCard
