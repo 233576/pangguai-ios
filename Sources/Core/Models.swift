@@ -24,22 +24,6 @@ struct PGBalanceItem: Codable, Identifiable, Hashable {
         Double(remainCoin.replacingOccurrences(of: ",", with: "")) ?? 0
     }
 
-    /// 实付金额（`payPrice` 优先，没有就用标价）。用来判断「这笔到底付没付钱」。
-    var paidAmount: Double {
-        for raw in [payPrice, markPrice] where !raw.isEmpty {
-            if let value = Double(raw) { return value }
-        }
-        return 0
-    }
-
-    /// 状态文案的最终版：服务端状态码 + 金额双保险。
-    /// 取消掉的订单在部分网点会被回写成 3（已完成），金额是 0，这里纠回「已取消」。
-    var displayStatusText: String {
-        if status == 3 && paidAmount <= 0 { return "已取消" }
-        if status == 2 && paidAmount <= 0 { return "未付款" }
-        return statusText
-    }
-
     var amountText: String {
         remainCoin.isEmpty ? "—" : "¥\(remainCoin)"
     }
@@ -141,6 +125,22 @@ struct PGOrder: Codable, Identifiable, Hashable {
 
     /// 只有「已支付」才是真的在洗（洗衣机是先付款后启动）。
     var isPaid: Bool { status == 2 }
+
+    /// 实付金额（`payPrice` 优先，没有就用标价）。用来判断「这笔到底付没付钱」。
+    var paidAmount: Double {
+        for raw in [payPrice, markPrice] where !raw.isEmpty {
+            if let value = Double(raw) { return value }
+        }
+        return 0
+    }
+
+    /// 状态文案的最终版：服务端状态码 + 金额双保险。
+    /// 取消掉的订单在部分网点会被回写成 3（已完成），金额是 0，这里纠回「已取消」。
+    var displayStatusText: String {
+        if status == 3 && paidAmount <= 0 { return "已取消" }
+        if status == 2 && paidAmount <= 0 { return "未付款" }
+        return statusText
+    }
 
     var amountText: String {
         if !payPrice.isEmpty { return "¥\(payPrice)" }
