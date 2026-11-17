@@ -171,6 +171,17 @@ enum PGProtocol {
         }
         return URL(string: "alipays://platformapi/startapp?saId=10000007")
     }
+
+    /// 能在 Safari 里打开的支付页。
+    /// 微信 H5 支付（mweb_url）只有从浏览器发起，微信才会接管；支付宝可以退回网关页。
+    static func safariPayURL(for param: String, payType: Int) -> URL? {
+        let text = payType == payTypeWeChat ? wechatQRText(for: param) : qrContent(for: param)
+        let lower = text.lowercased()
+        if lower.hasPrefix("http"), let url = URL(string: text) { return url }
+        if payType == payTypeWeChat { return nil }
+        let encoded = param.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? param
+        return URL(string: "https://openapi.alipay.com/gateway.do?\(encoded)")
+    }
 }
 
 /// 统一响应包装。code == 0 为成功；2 / 401 表示未登录。
