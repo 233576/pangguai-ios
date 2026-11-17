@@ -24,6 +24,13 @@ jobs:
           brew install xcodegen
           xcodegen --version
 
+      - name: Fetch WeChat OpenSDK
+        run: |
+          curl -sSL -o /tmp/wxopen.zip https://dldir1.qq.com/WechatWebDev/opensdk/XCFramework/OpenSDK2.0.9.zip
+          mkdir -p sdk
+          unzip -q /tmp/wxopen.zip -d sdk
+          ls -R sdk | head -40
+
       - name: Generate project
         run: xcodegen generate --spec project.yml
 
