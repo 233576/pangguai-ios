@@ -7,6 +7,7 @@ import SwiftUI
 struct WashProgressCard: View {
     var order: PGOrder
     var now: Date
+    var alert: DeviceAlert? = nil
 
     private var remaining: TimeInterval { order.remaining(now: now) }
     private var isDone: Bool { remaining <= 0 }
@@ -14,6 +15,10 @@ struct WashProgressCard: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
+            if let alert {
+                alertBar(alert)
+            }
+
             HStack(spacing: 12) {
                 FlatStatusMark(symbol: isDone ? "checkmark" : "drop.fill", tint: tint, size: 44)
 
@@ -66,6 +71,42 @@ struct WashProgressCard: View {
         }
         .padding(18)
         .flatCard()
+    }
+
+    /// 「设备异常，已暂停」这类服务端提示，样式比照官方 App 顶部那条蓝色横幅。
+    private func alertBar(_ alert: DeviceAlert) -> some View {
+        let tint = alert.isWarning ? Flat.orange : Flat.accent
+        return HStack(alignment: .top, spacing: 10) {
+            Image(systemName: alert.isWarning ? "exclamationmark.triangle.fill" : "info.circle.fill")
+                .font(.system(size: 15, weight: .semibold))
+                .foregroundStyle(tint)
+
+            VStack(alignment: .leading, spacing: 3) {
+                Text(alert.title)
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundStyle(Flat.textPrimary)
+                Text(alert.detail)
+                    .font(.system(size: 12))
+                    .foregroundStyle(Flat.textSecondary)
+                    .fixedSize(horizontal: false, vertical: true)
+                if alert.isWarning {
+                    Text("检查洗衣机门是否关紧；仍然异常就联系商家点「故障上报」。")
+                        .font(.system(size: 11))
+                        .foregroundStyle(Flat.textTertiary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+            }
+            Spacer(minLength: 0)
+        }
+        .padding(12)
+        .background(
+            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                .fill(tint.opacity(0.12))
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                .strokeBorder(tint.opacity(0.35), lineWidth: 1)
+        )
     }
 
     private var subtitle: String {
