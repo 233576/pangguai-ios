@@ -131,6 +131,77 @@ struct PGOrder: Codable, Identifiable, Hashable {
         if !functionName.isEmpty { return functionName }
         return "洗衣机订单"
     }
+
+    // MARK: - 洗涤进度
+
+    /// `createTime` 是下单时间，形如 `2026-11-17 13:56:08`。
+    var startedAt: Date? {
+        PGOrder.timeFormatter.date(from: createTime)
+            ?? PGOrder.timeFormatterAlt.date(from: createTime)
+    }
+
+    /// 预计结束时间 = 下单时间 + 套餐时长。
+    var endsAt: Date? {
+        guard let start = startedAt, minutes > 0 else { return nil }
+        return start.addingTimeInterval(TimeInterval(minutes * 60))
+    }
+
+    /// 只有「已支付 / 进行中」且还没到点，才算正在洗。
+    func isRunning(now: Date = Date()) -> Bool {
+        guard status == 1 || status == 2, let end = endsAt else { return false }
+        return end > now
+    }
+
+    func remaining(now: Date = Date()) -> TimeInterval {
+        guard let end = endsAt else { return 0 }
+        return max(0, end.timeIntervalSince(now))
+    }
+
+    /// 0…1，用于进度条。
+    func progress(now: Date = Date()) -> Double {
+        guard let start = startedAt, let end = endsAt, end > start else { return 0 }
+        let total = end.timeIntervalSince(start)
+        let done = now.timeIntervalSince(start)
+        return min(1, max(0, done / total))
+    }
+
+    /// `24:13` / `1:02:30`。
+    func remainingText(now: Date = Date()) -> String {
+        let seconds = Int(remaining(now: now).rounded())
+        let h = seconds / 3600
+        let m = (seconds % 3600) / 60
+        let s = seconds % 60
+        if h > 0 { return String(format: "%d:%02d:%02d", h, m, s) }
+        return String(format: "%02d:%02d", m, s)
+    }
+
+    /// `13:42 洗好` 这类文案。
+    func finishText(now: Date = Date()) -> String {
+        guard let end = endsAt else { return "—" }
+        if end <= now { return "已洗好" }
+        return PGOrder.clockFormatter.string(from: end) + " 洗好"
+    }
+
+    static let timeFormatter: DateFormatter = {
+        let f = DateFormatter()
+        f.locale = Locale(identifier: "en_US_POSIX")
+        f.dateFormat = "yyyy-MM-dd HH:mm:ss"
+        return f
+    }()
+
+    static let timeFormatterAlt: DateFormatter = {
+        let f = DateFormatter()
+        f.locale = Locale(identifier: "en_US_POSIX")
+        f.dateFormat = "yyyy-MM-dd'T'HH:mm:ss"
+        return f
+    }()
+
+    static let clockFormatter: DateFormatter = {
+        let f = DateFormatter()
+        f.locale = Locale(identifier: "en_US_POSIX")
+        f.dateFormat = "HH:mm"
+        return f
+    }()
 }
 
 // MARK: - 待支付订单（本地账本）
