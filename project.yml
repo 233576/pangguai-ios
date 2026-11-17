@@ -1,0 +1,68 @@
+name: Pangguai
+options:
+  bundleIdPrefix: com.pangguai
+  deploymentTarget:
+    iOS: "16.0"
+  createIntermediateGroups: true
+
+settings:
+  base:
+    SWIFT_VERSION: "5.0"
+    IPHONEOS_DEPLOYMENT_TARGET: "16.0"
+    ENABLE_BITCODE: NO
+    CODE_SIGNING_ALLOWED: NO
+    CODE_SIGNING_REQUIRED: NO
+    CODE_SIGN_IDENTITY: ""
+    DEVELOPMENT_TEAM: ""
+    MARKETING_VERSION: "1.0.0"
+    CURRENT_PROJECT_VERSION: "1"
+
+targets:
+  Pangguai:
+    type: application
+    platform: iOS
+    deploymentTarget: "16.0"
+    sources:
+      - path: Sources
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.pangguai.ios
+        PRODUCT_NAME: Pangguai
+        INFOPLIST_FILE: Support/Info.plist
+        TARGETED_DEVICE_FAMILY: "1,2"
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        SWIFT_EMIT_LOC_STRINGS: NO
+        GENERATE_INFOPLIST_FILE: NO
+    info:
+      path: Support/Info.plist
+      properties:
+        CFBundleDisplayName: 胖乖洗衣
+        NSCameraUsageDescription: 需要相机扫码识别洗衣机上的二维码。
+        CFBundleShortVersionString: "1.0.0"
+        CFBundleVersion: "1"
+        UILaunchScreen: {}
+        UISupportedInterfaceOrientations:
+          - UIInterfaceOrientationPortrait
+        UIUserInterfaceStyle: Dark
+        NSSupportsLiveActivities: false
+        UIBackgroundModes: []
+        NSAppTransportSecurity:
+          NSAllowsArbitraryLoads: true
+        LSApplicationQueriesSchemes:
+          - alipays
+          - alipay
+          - alipayqr
+
+schemes:
+  Pangguai:
+    build:
+      targets:
+        Pangguai: all
+    run:
+      config: Release
+    archive:
+      config: Release
+
+configs:
+  Debug: debug
+  Release: release
