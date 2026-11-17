@@ -299,6 +299,28 @@ struct PGResponse {
         if let no = obj["incompleteOrderNo"] as? String, !no.isEmpty { return no }
         return nil
     }
+
+    /// `/pay/ticket/getAvailablePayTypeList` 的 `data` 数组。
+    var payOptions: [PayOption] {
+        guard let array = dataArray else { return [] }
+        return array.compactMap { row -> PayOption? in
+            let type = row.intValue("payType", -1)
+            guard type > 0 else { return nil }
+            return PayOption(type: type,
+                             name: row.text("payTypeName"),
+                             isDefault: row.intValue("defaultFlag", 0) == 1)
+        }
+    }
+
+    /// prePay 的 `data.payTypeList`（渠道没开通时服务端会在这里回可用的数字数组）。
+    var payTypeList: [Int] {
+        guard let obj = dataObject, let list = obj["payTypeList"] as? [Any] else { return [] }
+        return list.compactMap { item in
+            if let n = item as? NSNumber { return n.intValue }
+            if let s = item as? String { return Int(s) }
+            return nil
+        }
+    }
 }
 
 extension Dictionary where Key == String, Value == Any {
