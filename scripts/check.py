@@ -1,5 +1,6 @@
-import io
 import glob
+import io
+
 import yaml
 
 p = yaml.safe_load(io.open('project.yml', encoding='utf-8'))
@@ -18,15 +19,38 @@ w = yaml.safe_load(io.open('.github/workflows/build-unsigned-ipa.yml', encoding=
 print('workflow:', w['name'], '| runner', w['jobs']['build']['runs-on'], '| steps', len(w['jobs']['build']['steps']))
 print('triggers:', list(w[True] if True in w else w['on']))
 
+
+def strip_strings(text):
+    """把 Swift 字符串字面量内容抹掉，避免 JSON 里的引号/花括号干扰计数。"""
+    out = []
+    in_string = False
+    escaped = False
+    for ch in text:
+        if in_string:
+            if escaped:
+                escaped = False
+            elif ch == '\\':
+                escaped = True
+            elif ch == '"':
+                in_string = False
+                out.append('"')
+            continue
+        if ch == '"':
+            in_string = True
+            out.append('"')
+            continue
+        out.append(ch)
+    return ''.join(out)
+
+
 total = 0
 ok = True
 for f in sorted(glob.glob('Sources/**/*.swift', recursive=True)):
     text = io.open(f, encoding='utf-8').read()
     total += text.count('\n')
-    # 双引号里的单字符花括号（如 hasPrefix("{")）不算作用域括号
-    scoped = text.replace('"{"', '').replace('"}"', '')
-    b = (scoped.count('{'), scoped.count('}'))
-    pa = (scoped.count('('), scoped.count(')'))
+    code = strip_strings(text)
+    b = (code.count('{'), code.count('}'))
+    pa = (code.count('('), code.count(')'))
     flag = '' if b[0] == b[1] and pa[0] == pa[1] else '  <== UNBALANCED'
     if flag:
         ok = False
