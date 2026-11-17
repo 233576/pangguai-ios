@@ -20,27 +20,60 @@ print('workflow:', w['name'], '| runner', w['jobs']['build']['runs-on'], '| step
 print('triggers:', list(w[True] if True in w else w['on']))
 
 
-def strip_strings(text):
-    """把 Swift 字符串字面量内容抹掉，避免 JSON 里的引号/花括号干扰计数。"""
-    out = []
-    in_string = False
-    escaped = False
-    for ch in text:
-        if in_string:
-            if escaped:
-                escaped = False
-            elif ch == '\\':
-                escaped = True
-            elif ch == '"':
-                in_string = False
-                out.append('"')
+def count_brackets(text):
+    """数括号，跳过字符串字面量、行注释与块注释。
+
+    旧实现是先「把字符串内容抹掉再计数」，遇到三引号多行串或插值写法就会
+    把状态翻转错，导致误报（AppStore 曾报 parens 318/321 其实完全平衡）。
+    """
+    counters = {'{': 0, '}': 0, '(': 0, ')': 0}
+    i = 0
+    n = len(text)
+    in_str = False
+    in_line = False
+    block = 0
+    while i < n:
+        ch = text[i]
+        if in_line:
+            if ch == '\n':
+                in_line = False
+            i += 1
+            continue
+        if block:
+            if ch == '/' and i + 1 < n and text[i + 1] == '*':
+                block += 1
+                i += 2
+                continue
+            if ch == '*' and i + 1 < n and text[i + 1] == '/':
+                block -= 1
+                i += 2
+                continue
+            i += 1
+            continue
+        if in_str:
+            if ch == '\\':
+                i += 2
+                continue
+            if ch == '"':
+                in_str = False
+            i += 1
+            continue
+        if ch == '/' and i + 1 < n and text[i + 1] == '/':
+            in_line = True
+            i += 2
+            continue
+        if ch == '/' and i + 1 < n and text[i + 1] == '*':
+            block = 1
+            i += 2
             continue
         if ch == '"':
-            in_string = True
-            out.append('"')
+            in_str = True
+            i += 1
             continue
-        out.append(ch)
-    return ''.join(out)
+        if ch in counters:
+            counters[ch] += 1
+        i += 1
+    return counters
 
 
 total = 0
@@ -48,9 +81,9 @@ ok = True
 for f in sorted(glob.glob('Sources/**/*.swift', recursive=True)):
     text = io.open(f, encoding='utf-8').read()
     total += text.count('\n')
-    code = strip_strings(text)
-    b = (code.count('{'), code.count('}'))
-    pa = (code.count('('), code.count(')'))
+    counters = count_brackets(text)
+    b = (counters['{'], counters['}'])
+    pa = (counters['('], counters[')'])
     flag = '' if b[0] == b[1] and pa[0] == pa[1] else '  <== UNBALANCED'
     if flag:
         ok = False
