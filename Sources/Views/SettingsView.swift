@@ -1,10 +1,12 @@
 import SwiftUI
+import UIKit
 
 /// 设置页：账号、支付方式、自动刷新、接口信息、关于。
 struct SettingsView: View {
     @EnvironmentObject private var store: AppStore
 
     @State private var showingLogin = false
+    @State private var copiedToken: String?
 
     var body: some View {
         ZStack {
@@ -185,6 +187,28 @@ struct SettingsView: View {
             Text("协议参考 Cumpus / wash / baotuquan-light 三个开源项目，只复刻了洗衣机（categoryCode=wash）这一条链路：扫码 → 选套餐 → 下单 → 扫码支付 → 查订单。")
                 .font(.system(size: 11))
                 .foregroundStyle(Flat.textTertiary)
+            Button {
+                let token = store.loginToken()
+                guard !token.isEmpty else {
+                    copiedToken = "还没登录，没有凭证"
+                    return
+                }
+                UIPasteboard.general.string = token
+                copiedToken = "已复制 \(token.count) 个字符"
+            } label: {
+                Text("复制登录凭证（调试）")
+                    .font(.system(size: 12, weight: .medium))
+                    .foregroundStyle(Flat.textSecondary)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 9)
+            }
+            .buttonStyle(.plain)
+            .flatField()
+            if let copiedToken {
+                Text(copiedToken)
+                    .font(.system(size: 11))
+                    .foregroundStyle(Flat.textTertiary)
+            }
         }
         .padding(16)
         .flatCard(fill: Flat.surfaceLow)
