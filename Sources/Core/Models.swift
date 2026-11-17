@@ -64,12 +64,45 @@ struct PGDeviceDetail: Codable, Equatable {
     var serviceTelephone: String = ""
     var deviceId: String = ""
 
+    /// 以下是抓包核对过的真实字段（`/goods/normal/details`）。
+    /// 设备异常的真身在这里，不在 `/order/detail` 里。
+    var deviceErrorCode: String = ""
+    var deviceErrorMsg: String = ""
+    var announcementContent: String = ""
+    var imei: String = ""
+    var machineId: String = ""
+    var payment: String = ""
+    var tradeMain: Int = 0
+    var isBluetooth: Int = 0
+    var remainTime: Int = 0
+    var payTypes: [Int] = []
+
     var subtitle: String {
         var parts: [String] = []
         if !orgName.isEmpty { parts.append(orgName) }
         if !brandName.isEmpty { parts.append(brandName) }
         return parts.joined(separator: " · ")
     }
+
+    /// 服务端下发的设备故障文案（官方 App 顶部那条「设备异常，已暂停」就是它）。
+    var hasDeviceError: Bool {
+        if !deviceErrorMsg.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty { return true }
+        let code = deviceErrorCode.trimmingCharacters(in: .whitespacesAndNewlines)
+        return !code.isEmpty && code != "0" && code.lowercased() != "null"
+    }
+
+    var deviceErrorText: String {
+        let msg = deviceErrorMsg.trimmingCharacters(in: .whitespacesAndNewlines)
+        if !msg.isEmpty { return msg }
+        if hasDeviceError { return "设备异常（故障码 \(deviceErrorCode)），请先联系商家" }
+        return ""
+    }
+
+    var payTypesText: String {
+        payTypes.map { PGProtocol.payTitle($0) }.joined(separator: " / ")
+    }
+
+    var disabled: Bool { soldState != 1 }
 }
 
 /// `/goods/normal/skus` 可选套餐（洗涤时长 / 温度 …）。
@@ -134,12 +167,11 @@ struct PGOrder: Codable, Identifiable, Hashable {
         return 0
     }
 
-    /// 状态文案的最终版：服务端状态码 + 金额双保险。
-    /// 取消掉的订单在部分网点会被回写成 3（已完成），金额是 0，这里纠回「已取消」。
+    /// 状态文案的最终版。
+    /// 抓包核对：`orderStatus 3` 的「桶自洁 ¥0.00」订单在官方 App 里就是「已完成」（有 `finishTime`），
+    /// 所以不能再按「金额为 0 就当成取消」去纠写，直接信任服务端状态码。
     var displayStatusText: String {
-        if status == 3 && paidAmount <= 0 { return "已取消" }
-        if status == 2 && paidAmount <= 0 { return "未付款" }
-        return statusText
+        statusText
     }
 
     var amountText: String {
