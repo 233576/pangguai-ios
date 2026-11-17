@@ -12,6 +12,23 @@ struct PGUser: Codable, Equatable {
     }
 }
 
+/// `/user/astrict/list` 一条受限（店铺）余额。
+struct PGBalanceItem: Codable, Identifiable, Hashable {
+    var remainCoin: String = ""
+    var shopNames: String = ""
+    var machineTypeNames: String = ""
+
+    var id: String { shopNames + "|" + machineTypeNames }
+
+    var amount: Double {
+        Double(remainCoin.replacingOccurrences(of: ",", with: "")) ?? 0
+    }
+
+    var amountText: String {
+        remainCoin.isEmpty ? "—" : "¥\(remainCoin)"
+    }
+}
+
 // MARK: - 设备
 
 /// `/goods/latestUsed` 最近用过的一台洗衣机。
