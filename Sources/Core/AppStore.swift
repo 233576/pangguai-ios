@@ -1,4 +1,5 @@
 import Foundation
+import UIKit
 
 @MainActor
 final class AppStore: ObservableObject {
@@ -29,6 +30,11 @@ final class AppStore: ObservableObject {
 
     @Published private(set) var codeCountdown = 0
     @Published private(set) var lastQueryCode = ""
+
+    /// 每秒跳动一次，驱动洗涤倒计时。只有界面里真的显示倒计时时才跑，省电。
+    @Published private(set) var now = Date()
+    private var clock: Timer?
+    private var finishedOrderIds: Set<String> = []
 
     private var client = PGClient()
     private var countdownTask: Task<Void, Never>?
@@ -707,6 +713,49 @@ final class AppStore: ObservableObject {
             await refreshOrders()
         } else {
             errorMessage = "撤销失败：\(response.message)"
+        }
+    }
+
+    // MARK: - 洗涤进度
+
+    /// 当前正在洗的订单（服务端 status 1/2 且未到预计结束时间）。
+    var runningOrder: PGOrder? {
+        orders.first { $0.isRunning(now: now) }
+    }
+
+    /// 最近一笔已支付/进行中的订单，倒计时结束后用来显示「洗好了」。
+    var latestPaidOrder: PGOrder? {
+        orders.first { $0.status == 1 || $0.status == 2 }
+    }
+
+    func startClock() {
+        guard clock == nil else { return }
+        now = Date()
+        let timer = Timer(timeInterval: 1.0, repeats: true) { [weak self] _ in
+            Task { @MainActor in
+                guard let self else { return }
+                self.now = Date()
+                self.checkFinish()
+            }
+        }
+        RunLoop.main.add(timer, forMode: .common)
+        clock = timer
+    }
+
+    func stopClock() {
+        clock?.invalidate()
+        clock = nil
+    }
+
+    /// 倒计时走完的那一下：震动 + 记一条日志，只触发一次。
+    private func checkFinish() {
+        for order in orders where order.status == 1 || order.status == 2 {
+            guard let end = order.endsAt, end <= now else { continue }
+            let key = order.id.isEmpty ? order.orderNo : order.id
+            guard !finishedOrderIds.contains(key) else { continue }
+            finishedOrderIds.insert(key)
+            UINotificationFeedbackGenerator().notificationOccurred(.success)
+            log("洗涤完成：\(order.title)  \(order.functionName)")
         }
     }
 
