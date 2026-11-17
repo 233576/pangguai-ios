@@ -143,10 +143,10 @@ struct PaySheet: View {
                                     .font(.system(size: 16, weight: .semibold))
                             }
                             .frame(maxWidth: .infinity)
+                            .contentShape(Rectangle())
                         }
                         .buttonStyle(FlatButtonStyle(tint: isWeChat ? Flat.green : Flat.accent,
                                                       filled: true, height: 50))
-                        .disabled(!current.hasQR)
 
                         Button {
                             openScanner()
@@ -158,13 +158,28 @@ struct PaySheet: View {
                                     .font(.system(size: 15, weight: .semibold))
                             }
                             .frame(maxWidth: .infinity)
+                            .contentShape(Rectangle())
                         }
                         .buttonStyle(FlatButtonStyle(tint: isWeChat ? Flat.green : Flat.accent,
                                                       filled: false, height: 46))
 
+                        Button {
+                            openInSafari()
+                        } label: {
+                            HStack(spacing: 8) {
+                                Image(systemName: "safari")
+                                    .font(.system(size: 15, weight: .semibold))
+                                Text(isWeChat ? "用 Safari 打开并唤起微信支付" : "用 Safari 打开支付页")
+                                    .font(.system(size: 15, weight: .semibold))
+                            }
+                            .frame(maxWidth: .infinity)
+                            .contentShape(Rectangle())
+                        }
+                        .buttonStyle(FlatButtonStyle(tint: Flat.cyan, filled: false, height: 46))
+
                         Text(isWeChat
-                             ? "微信不支持被外部 App 直接调起收银台，所以流程是：保存二维码 → 打开微信扫一扫 → 右上角「相册」选刚存的图。"
-                             : "支付宝对第三方直接调起收银台的限制越来越严，稳妥流程同上：保存二维码 → 打开支付宝扫一扫 → 右上角「相册」选图。")
+                             ? "微信的 H5 支付必须在浏览器里发起才肯跳转：先点「用 Safari 打开」，页面里点去支付，系统才会把链接交给微信。"
+                             : "支付宝对第三方直接调起收银台的限制越来越严，可以试「用 Safari 打开」，或保存二维码后用扫一扫的相册选图。")
                             .font(.system(size: 11))
                             .multilineTextAlignment(.center)
                             .foregroundStyle(Flat.textTertiary)
@@ -176,20 +191,20 @@ struct PaySheet: View {
                             Text("尝试直接调起\(payLabel)收银台")
                                 .font(.system(size: 13, weight: .medium))
                                 .frame(maxWidth: .infinity)
+                                .contentShape(Rectangle())
                         }
                         .buttonStyle(FlatButtonStyle(tint: Flat.surfaceHigh, filled: false, height: 40))
-                        .disabled(!current.hasQR || switching)
+                        .disabled(switching)
 
                         Button {
-                            UIPasteboard.general.string = qrText
-                            store.noticeMessage = "支付链接已复制，可粘贴到\(payLabel)或浏览器打开"
+                            copyPayString()
                         } label: {
                             Text("复制支付链接")
                                 .font(.system(size: 14, weight: .semibold))
                                 .frame(maxWidth: .infinity)
+                                .contentShape(Rectangle())
                         }
                         .buttonStyle(FlatButtonStyle(tint: Flat.surfaceHigh, filled: false, height: 44))
-                        .disabled(!current.hasQR)
 
                         HStack(spacing: 10) {
                             Button {
@@ -229,6 +244,9 @@ struct PaySheet: View {
                             row("订单号", current.orderId)
                             if !current.orgName.isEmpty { row("网点", current.orgName) }
                             row("支付方式", payLabel)
+                            row("支付串", current.prepayParam.isEmpty
+                                ? "空（点「重新取支付串」）"
+                                : "\(current.prepayParam.count) 字符 · \(qrText.prefix(28))…")
                             row("创建时间", Self.formatter.string(from: current.createdAt))
                         }
                         .padding(16)
@@ -278,11 +296,12 @@ struct PaySheet: View {
             guard !switching, payType != type else { return }
             Task {
                 switching = true
-                await store.switchPayType(type)
+                let error = await store.switchPayType(type)
                 switching = false
                 if store.pending?.payType == type {
                     payTypeOverride = type
                 }
+                if let error { alertMessage = error }
             }
         } label: {
             VStack(spacing: 3) {
@@ -343,9 +362,34 @@ struct PaySheet: View {
         }
     }
 
+    /// 用 Safari 打开支付页：微信 H5 支付只有从浏览器发起才会把链接交给微信 App。
+    private func openInSafari() {
+        guard let url = PGProtocol.safariPayURL(for: current.prepayParam, payType: payType) else {
+            alertMessage = "这笔单没有可用的网页支付链接（支付串 \(current.prepayParam.count) 字符）。可以在支付方式里切换一次渠道重新取串，或点「重新取支付串」。"
+            return
+        }
+        UIApplication.shared.open(url, options: [:]) { ok in
+            guard !ok else { return }
+            DispatchQueue.main.async {
+                self.alertMessage = "Safari 没接住这个链接，可以先点「复制支付链接」自己粘到浏览器。"
+            }
+        }
+    }
+
+    private func copyPayString() {
+        let text = qrText
+        guard !text.isEmpty else {
+            alertMessage = "还没有支付串可复制。先点「重新取支付串」，或切换支付方式重新取一次。"
+            return
+        }
+        UIPasteboard.general.string = text
+        alertMessage = "已复制 \(text.count) 个字符。粘到\(payLabel)聊天框或浏览器地址栏都能用。"
+        store.log("已复制支付串（\(text.count) 字符，payType=\(payType)）")
+    }
+
     private func saveQRToAlbum() {
         guard let image = QRCodeView.image(for: qrText) else {
-            alertMessage = "二维码生成失败，没法保存"
+            alertMessage = "二维码生成失败（支付串 \(current.prepayParam.count) 字符），没法保存"
             return
         }
         UIImageWriteToSavedPhotosAlbum(image, nil, nil, nil)
