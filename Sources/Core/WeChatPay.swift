@@ -76,10 +76,6 @@ enum WeChatPay {
             completion(false, "支付参数不完整（缺 partnerid / prepayid / sign）")
             return
         }
-        guard WXApi.isWXAppInstalled() else {
-            completion(false, "这台设备没装微信")
-            return
-        }
         register(appId: params.appId)
 
         let req = PayReq()
