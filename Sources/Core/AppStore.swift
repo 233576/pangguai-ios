@@ -21,6 +21,8 @@ final class AppStore: ObservableObject {
     @Published var needsLogin = false
     /// 最近一次取支付串失败的原因（含每个渠道的 code/msg），支付面板直接展示。
     @Published private(set) var lastPrepayError: String?
+    /// 最近一次 prePay 的原始响应（干跑诊断用，成功时清空）。
+    @Published private(set) var lastPrepayRaw: String = ""
 
     @Published private(set) var codeCountdown = 0
     @Published private(set) var lastQueryCode = ""
@@ -465,16 +467,21 @@ final class AppStore: ObservableObject {
             types.append(candidate)
         }
         var notes: [String] = []
+        lastPrepayRaw = ""
         for type in types {
             let response = await client.prePay(orderNo: orderNo, payType: type)
             let title = PGProtocol.payTitle(type)
             if response.ok {
-                let param = (response.dataObject ?? [:]).text("prepayParam")
+                let data = response.dataObject ?? [:]
+                let param = PGProtocol.deepPayParam(in: data)
                 if param.isEmpty {
-                    let note = "\(title)（payType=\(type)）→ code=0 但没有 prepayParam"
+                    let note = "\(title)（payType=\(type)）→ code=0 但没有支付串"
                     notes.append(note)
-                    log("取支付串 \(note) body=\(String(response.body.prefix(200)))")
+                    lastPrepayRaw = "payType=\(type)\n\(response.body)"
+                    log("取支付串 \(note)")
+                    log("原始响应：\(String(response.body.prefix(1200)))")
                 } else {
+                    lastPrepayRaw = ""
                     log("取支付串成功：\(title)（payType=\(type)）\(param.count) 字符")
                     return PrePayOutcome(picked: (type, param),
                                          detail: notes.joined(separator: "；"))
@@ -482,7 +489,9 @@ final class AppStore: ObservableObject {
             } else {
                 let note = "\(title)（payType=\(type)）→ code=\(response.code) \(response.message)"
                 notes.append(note)
-                log("取支付串 \(note) body=\(String(response.body.prefix(300)))")
+                lastPrepayRaw = "payType=\(type)\n\(response.body)"
+                log("取支付串 \(note)")
+                log("原始响应：\(String(response.body.prefix(1200)))")
                 if response.isUnauthorized {
                     return PrePayOutcome(picked: nil, detail: "登录已失效，请重新登录后再试")
                 }
@@ -505,7 +514,7 @@ final class AppStore: ObservableObject {
             return "切换为\(PGProtocol.payTitle(type))失败：\(prepay.friendlyMessage)"
         }
         let data = prepay.dataObject ?? [:]
-        let param = data.text("prepayParam")
+        let param = PGProtocol.deepPayParam(in: data)
         current.payType = type
         current.prepayParam = param
         pending = current
