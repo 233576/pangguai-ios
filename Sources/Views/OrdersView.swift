@@ -160,6 +160,27 @@ struct OrdersView: View {
                     .flatPill(selected: true, tint: statusColor(order.status))
             }
 
+            if order.isRunning(now: store.now) {
+                VStack(alignment: .leading, spacing: 6) {
+                    HStack(spacing: 6) {
+                        Text(order.remainingText(now: store.now))
+                            .font(.system(size: 26, weight: .semibold, design: .rounded))
+                            .monospacedDigit()
+                            .foregroundStyle(Flat.accent)
+                        Text("后洗好")
+                            .font(.system(size: 12))
+                            .foregroundStyle(Flat.textSecondary)
+                        Spacer(minLength: 0)
+                        Text(order.finishText(now: store.now))
+                            .font(.system(size: 11))
+                            .foregroundStyle(Flat.textTertiary)
+                    }
+                    FlatProgressBar(progress: order.progress(now: store.now),
+                                    tint: Flat.accent,
+                                    height: 6)
+                }
+            }
+
             HStack(spacing: 10) {
                 Text(order.amountText)
                     .font(.system(size: 17, weight: .bold, design: .rounded))
