@@ -35,6 +35,14 @@ final class AppStore: ObservableObject {
     @Published private(set) var now = Date()
     /// 进行中订单的设备异常提示（服务端有就给，没有就是 nil）。
     @Published private(set) var deviceAlert: DeviceAlert?
+
+    /// 设备详情里服务端直接下发的故障文案（`deviceErrorMsg`）优先于订单详情的启发式推断。
+    var activeAlert: DeviceAlert? {
+        if let detail = device, detail.hasDeviceError {
+            return DeviceAlert(title: "设备异常，已暂停", detail: detail.deviceErrorText)
+        }
+        return deviceAlert
+    }
     /// 最近一次 `/order/detail` 的原始响应，供「复制诊断信息」用。
     @Published private(set) var lastDetailRaw: String = ""
 
@@ -142,6 +150,32 @@ final class AppStore: ObservableObject {
     }
 
     // MARK: - 登录
+
+    /// 直接粘贴凭证登录。胖乖小程序和 App 共用同一套 token，
+    /// 所以从电脑端抓到 `token=xxxx` 后粘进来就能用，不需要短信验证码。
+    func login(withToken raw: String) async {
+        var clean = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+        // 允许直接粘贴 `token=xxx` 或者整段表单
+        if let range = clean.range(of: "token=") {
+            clean = String(clean[range.upperBound...])
+            if let amp = clean.firstIndex(of: "&") { clean = String(clean[..<amp]) }
+        }
+        clean = clean.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard clean.count >= 16 else {
+            errorMessage = "这一串看起来不是 token（太短了）"
+            return
+        }
+        storeToken(clean, phone: settings.lastPhone)
+        busyText = "验证凭证…"
+        await refreshProfile()
+        busyText = ""
+        if user != nil {
+            noticeMessage = "登录成功：\(user?.phone ?? "")"
+            await refreshDevices()
+        } else {
+            errorMessage = "凭证无效或已过期，请在官方小程序里重新登录后再抓一次"
+        }
+    }
 
     func sendCode(phone: String) async -> Bool {
         let trimmed = phone.trimmingCharacters(in: .whitespaces)
@@ -399,10 +433,31 @@ final class AppStore: ObservableObject {
             brandName: data.text("brandName"),
             soldState: data.intValue("soldState"),
             serviceTelephone: data.text("serviceTelephone"),
-            deviceId: data.text("imei")
+            deviceId: data.text("imei"),
+            deviceErrorCode: data.text("deviceErrorCode"),
+            deviceErrorMsg: data.text("deviceErrorMsg"),
+            announcementContent: data.text("announcementContent"),
+            imei: data.text("imei"),
+            machineId: data.text("machineId"),
+            payment: data.text("payment"),
+            tradeMain: data.intValue("tradeMain"),
+            isBluetooth: data.intValue("isBluetooth"),
+            remainTime: data.intValue("remainTime"),
+            payTypes: (data["payTypes"] as? [Any])?.compactMap { value -> Int? in
+                if let v = value as? Int { return v }
+                if let v = value as? String { return Int(v) }
+                if let v = value as? NSNumber { return v.intValue }
+                return nil
+            } ?? []
         )
         device = detail
-        log("设备：\(detail.name)（\(detail.subtitle)）")
+        log("设备：\(detail.name)（\(detail.subtitle)）payTypes=\(detail.payTypes) remainTime=\(detail.remainTime)")
+        if detail.hasDeviceError {
+            log("设备异常：\(detail.deviceErrorText)")
+        }
+        if !detail.announcementContent.isEmpty {
+            log("公告：\(detail.announcementContent)")
+        }
 
         let skuResponse = await client.skus(goodsId: goodsId)
         if skuResponse.ok, let rows = skuResponse.dataArray {
