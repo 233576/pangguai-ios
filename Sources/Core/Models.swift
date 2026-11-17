@@ -132,7 +132,7 @@ struct PendingPayment: Codable, Equatable {
     var prepayParam: String
     var createdAt: Date
 
-    var hasQR: Bool { !prepayParam.isEmpty }
+    var isSettled: Bool { prepayParam.isEmpty }
 }
 
 // MARK: - 支付渠道
@@ -149,12 +149,8 @@ struct PayOption: Identifiable, Hashable {
     var title: String { name.isEmpty ? PGProtocol.payTitle(type) : name }
 
     var detail: String {
-        switch type {
-        case PGProtocol.payTypeWallet: return "余额扣款"
-        case PGProtocol.payTypeWeChat: return "扫一扫付款"
-        case PGProtocol.payTypeAlipay: return "扫码 / 跳转"
-        default: return isDefault ? "默认" : ""
-        }
+        if type == PGProtocol.payTypeWallet { return "余额扣款" }
+        return isDefault ? "默认" : ""
     }
 }
 
@@ -163,7 +159,7 @@ struct PayOption: Identifiable, Hashable {
 struct Settings: Codable, Equatable {
     var lastPhone: String = ""
     var autoRefresh: Bool = true
-    var payType: Int = PGProtocol.payTypeAlipay
+    var payType: Int = PGProtocol.payTypeWallet
 
     init() {}
 
@@ -171,6 +167,6 @@ struct Settings: Codable, Equatable {
         let c = try decoder.container(keyedBy: CodingKeys.self)
         lastPhone = (try? c.decode(String.self, forKey: .lastPhone)) ?? ""
         autoRefresh = (try? c.decode(Bool.self, forKey: .autoRefresh)) ?? true
-        payType = (try? c.decode(Int.self, forKey: .payType)) ?? PGProtocol.payTypeAlipay
+        payType = (try? c.decode(Int.self, forKey: .payType)) ?? PGProtocol.payTypeWallet
     }
 }
