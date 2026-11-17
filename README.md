@@ -61,8 +61,10 @@ alipays://platformapi/startapp?appId=20000125&orderSuffix=<urlencode(prepayParam
 
 ### 几个实测坑
 
+- **`code=-1 版本过低，请升级APP后再使用` ≠ 版本问题**：`/goods/scan/v2` 在 **token 为空**时就用这句话兜底。把 `Version` 头换成 1.143 / 1.147 / 1.150 / 1.155 / 1.160 / 1.170 / 2.0.0 / 4.0.0，或把 `versionCode` 改成 9999，回的都是同一句；而只要带**任意非空 token**（哪怕是一串乱码），同一个请求就会正常进入业务逻辑（假机器码回 `code 4000 设备未绑定`）。所以看到这句话先查登录态。
 - `code 2128`：上一笔未支付订单会挡住新单，`data.incompleteOrderId` 就是那笔，先去订单页处理。
 - `code 2` / `401`：token 失效，App 会自动退出登录并提示重登。
+- `code 4000`：这台机器没有绑定商家，平台侧没开通，App 里换一台。
 - `/goods/scan/v2` 字段名必须是 `NQT`（也接受 `SN`），扫出来的整条链接由 `AppStore.normalizedCode` 解析。
 - `trade/create` 一旦成功，订单就真实存在；不付款就点「撤销订单」（`/order/cancel`），不要重复下单。
 
