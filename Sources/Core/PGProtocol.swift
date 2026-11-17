@@ -74,6 +74,58 @@ enum PGProtocol {
         return Crypto.sha256Hex(raw)
     }
 
+    /// 官方二维码长这样：
+    /// `https://h5.qiekj.com/skip?Company=qiekj&CommunicateType=1&Ver=4&NQT=c13d3b8d-…`
+    /// 官方 H5（`pages_skip` chunk）就是把这个 URL 的 query 原样作为 `/goods/scan/v2` 的表单字段，
+    /// 所以这里也按同样方式拆：保留 NQT / Company / CommunicateType / Ver / keepUsing，其余忽略。
+    static func scanFields(from raw: String) -> [(String, String)] {
+        let text = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+        let allowed: Set<String> = ["NQT", "COMPANY", "COMMUNICATETYPE", "VER", "KEEPUSING"]
+        var result: [(String, String)] = []
+        var seen = Set<String>()
+
+        if let url = URL(string: text),
+           let components = URLComponents(url: url, resolvingAgainstBaseURL: false),
+           let items = components.queryItems {
+            for item in items {
+                let key = item.name
+                let upper = key.uppercased()
+                guard allowed.contains(upper), !seen.contains(upper) else { continue }
+                guard let value = item.value, !value.isEmpty else { continue }
+                seen.insert(upper)
+                result.append((key, value))
+            }
+        }
+
+        if result.isEmpty {
+            // 手输的裸机器码、或 `NQT=xxx&…` 这类非 URL 串
+            let separators = CharacterSet(charactersIn: "&?; ")
+            for pair in text.components(separatedBy: separators) {
+                let parts = pair.split(separator: "=", maxSplits: 1, omittingEmptySubsequences: false)
+                if parts.count == 2 {
+                    let upper = parts[0].uppercased()
+                    guard allowed.contains(upper), !seen.contains(upper) else { continue }
+                    seen.insert(upper)
+                    result.append((String(parts[0]), String(parts[1])))
+                }
+            }
+        }
+
+        if !seen.contains("NQT"), !text.isEmpty, !text.lowercased().hasPrefix("http") {
+            // 没有任何已知键：整串当机器码（手输 NQT）
+            return [("NQT", text)]
+        }
+        return result
+    }
+
+    /// 从二维码/粘贴内容里取机器码本身，仅用于界面展示与日志。
+    static func machineCode(from raw: String) -> String {
+        let fields = scanFields(from: raw)
+        for field in fields where field.0.uppercased() == "NQT" {
+            return field.1
+        }
+        return fields.first?.1 ?? ""
+    }
 }
 
 /// 统一响应包装。code == 0 为成功；2 / 401 表示未登录。
