@@ -163,6 +163,65 @@ enum PGProtocol {
         return qrContent(for: param)
     }
 
+    // MARK: - 支付串兜底提取
+
+    /// 不同网点、不同版本的接口会把支付串塞进不同字段（prepayParam / payInfo / payParams /
+    /// orderString …），有的还会再包一层 JSON 字符串。这里不去猜某一家，直接把整棵
+    /// data 树翻一遍，按优先级取第一个「看着像支付串」的值。
+    static func deepPayParam(in object: Any?) -> String {
+        guard let object = object else { return "" }
+        if let dict = object as? [String: Any] {
+            for key in payParamKeys {
+                if let text = payText(dict[key]) { return text }
+            }
+            for (_, value) in dict {
+                if let text = payText(value) { return text }
+            }
+            for (_, value) in dict {
+                let nested = deepPayParam(in: value)
+                if !nested.isEmpty { return nested }
+            }
+        }
+        if let array = object as? [Any] {
+            for item in array {
+                let nested = deepPayParam(in: item)
+                if !nested.isEmpty { return nested }
+            }
+        }
+        return ""
+    }
+
+    private static let payParamKeys = [
+        "prepayParam", "payParam", "payParams", "payInfo", "payInfoStr", "payInfoJson",
+        "orderString", "orderStr", "prepayString", "payParamStr", "payData", "payContent",
+        "payUrl", "mweb_url", "code_url", "tradeNo"
+    ]
+
+    private static func payText(_ value: Any?) -> String? {
+        if let text = value as? String {
+            let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+            return looksLikePayParam(trimmed) ? trimmed : nil
+        }
+        if let dict = value as? [String: Any] {
+            let nested = deepPayParam(in: dict)
+            return nested.isEmpty ? nil : nested
+        }
+        return nil
+    }
+
+    /// 判断一段文本是不是「支付串」。太短的不算，避免把订单号当成支付串。
+    static func looksLikePayParam(_ text: String) -> Bool {
+        guard text.count >= 24 else { return false }
+        let lower = text.lowercased()
+        if lower.hasPrefix("alipay_sdk") || lower.contains("biz_content") { return true }
+        if lower.contains("app_id=") && lower.contains("sign=") { return true }
+        if lower.hasPrefix("weixin://") || lower.hasPrefix("wxp://") { return true }
+        if lower.hasPrefix("https://qr.alipay.com") { return true }
+        if text.hasPrefix("{") || text.hasPrefix("[") { return true }
+        if lower.hasPrefix("http") && text.count >= 48 { return true }
+        return false
+    }
+
     /// 打开对应 App 的「扫一扫」页面（用户再从相册选刚保存的二维码）。
     /// 这条路比直接调起收银台稳得多：收银台入口各版本时常被废弃，扫一扫一直是受支持的入口。
     static func qrScanScheme(payType: Int) -> URL? {
