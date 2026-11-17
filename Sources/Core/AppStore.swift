@@ -17,6 +17,8 @@ final class AppStore: ObservableObject {
     @Published private(set) var busyText = ""
     @Published var errorMessage: String?
     @Published var noticeMessage: String?
+    /// 未登录却被要求扫码时置位，由界面弹出登录浮层。
+    @Published var needsLogin = false
 
     @Published private(set) var codeCountdown = 0
     @Published private(set) var lastQueryCode = ""
@@ -51,13 +53,16 @@ final class AppStore: ObservableObject {
            let decoded = try? JSONDecoder().decode(PendingPayment.self, from: data) {
             pending = decoded
         }
-        if let token = Keychain.load(account: tokenAccount), !token.isEmpty {
-            client = PGClient(token: token)
-            loggedIn = true
-            if let phone = Keychain.load(account: phoneAccount), !phone.isEmpty {
-                user = PGUser(phone: phone, balance: "", hasVip: false)
+        if let stored = Keychain.load(account: tokenAccount) {
+            let token = stored.trimmingCharacters(in: .whitespacesAndNewlines)
+            if !token.isEmpty {
+                client = PGClient(token: token)
+                loggedIn = true
+                if let phone = Keychain.load(account: phoneAccount), !phone.isEmpty {
+                    user = PGUser(phone: phone, balance: "", hasVip: false)
+                }
+                log("已载入登录状态")
             }
-            log("已载入登录状态")
         }
     }
 
@@ -76,10 +81,12 @@ final class AppStore: ObservableObject {
     }
 
     private func storeToken(_ token: String, phone: String) {
-        Keychain.save(token, account: tokenAccount)
+        let clean = token.trimmingCharacters(in: .whitespacesAndNewlines)
+        Keychain.save(clean, account: tokenAccount)
         Keychain.save(phone, account: phoneAccount)
-        client = PGClient(token: token)
-        loggedIn = true
+        client = PGClient(token: clean)
+        loggedIn = !clean.isEmpty
+        log("登录成功，凭证长度 \(clean.count)")
     }
 
     // MARK: - 设置
@@ -259,6 +266,16 @@ final class AppStore: ObservableObject {
     // MARK: - 选设备
 
     func resolve(code: String) async -> Bool {
+        // 服务端在 token 为空时对 /goods/scan/v2 回“版本过低，请升级APP”，
+        // 这是它的兜底文案，真实含义是“没有登录”。所以本地先拦住。
+        guard loggedIn else {
+            busyText = ""
+            lastQueryCode = ""
+            errorMessage = "请先登录手机号账号，再扫码识别洗衣机"
+            needsLogin = true
+            log("扫码被拦下 → 当前未登录（服务端会误报「版本过低」）")
+            return false
+        }
         let cleaned = normalizedCode(code)
         guard !cleaned.isEmpty else {
             errorMessage = "请扫码或输入机器码"
@@ -271,12 +288,13 @@ final class AppStore: ObservableObject {
             busyText = ""
             logout()
             errorMessage = "登录已过期，请重新登录"
+            needsLogin = true
             return false
         }
         guard scanResponse.ok, let data = scanResponse.dataObject else {
             busyText = ""
             log("扫码失败 → code=\(scanResponse.code) \(scanResponse.message)")
-            errorMessage = scanResponse.message
+            errorMessage = scanResponse.friendlyMessage
             return false
         }
         let goodsId = data.text("id").isEmpty ? data.text("goodsId") : data.text("id")
