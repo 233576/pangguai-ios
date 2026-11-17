@@ -19,6 +19,8 @@ final class AppStore: ObservableObject {
     @Published var noticeMessage: String?
     /// 未登录却被要求扫码时置位，由界面弹出登录浮层。
     @Published var needsLogin = false
+    /// 最近一次取支付串失败的原因（含每个渠道的 code/msg），支付面板直接展示。
+    @Published private(set) var lastPrepayError: String?
 
     @Published private(set) var codeCountdown = 0
     @Published private(set) var lastQueryCode = ""
@@ -394,11 +396,12 @@ final class AppStore: ObservableObject {
         }
         log("下单成功 orderId=\(orderId)，取支付串")
 
-        let prepay = await client.prePay(orderNo: orderId, payType: settings.payType)
+        let outcome = await requestPrePay(orderNo: orderId,
+                                         preferred: settings.payType)
         busyText = ""
-        guard prepay.ok, let payData = prepay.dataObject else {
-            log("取支付串失败 → code=\(prepay.code) \(prepay.message)")
-            errorMessage = "订单已创建，但取支付串失败：\(prepay.message)"
+        guard let picked = outcome.picked else {
+            lastPrepayError = outcome.detail
+            errorMessage = "订单已创建（\(orderId)），但取支付串失败：\(outcome.detail)"
             pending = PendingPayment(orderId: orderId,
                                      goodsId: detail.goodsId,
                                      skuId: sku.skuId,
@@ -413,7 +416,6 @@ final class AppStore: ObservableObject {
             await refreshOrders()
             return false
         }
-        let param = payData.text("prepayParam")
         pending = PendingPayment(orderId: orderId,
                                  goodsId: detail.goodsId,
                                  skuId: sku.skuId,
@@ -421,11 +423,12 @@ final class AppStore: ObservableObject {
                                  price: sku.price,
                                  machineName: detail.name,
                                  orgName: detail.orgName,
-                                 payType: settings.payType,
-                                 prepayParam: param,
+                                 payType: picked.payType,
+                                 prepayParam: picked.param,
                                  createdAt: Date())
+        lastPrepayError = nil
         persistPending()
-        log("支付串已就绪（\(param.count) 字符）")
+        log("支付串已就绪（\(picked.param.count) 字符，payType=\(picked.payType)）")
         await refreshOrders()
         return true
     }
@@ -433,14 +436,59 @@ final class AppStore: ObservableObject {
     func reopenPrepay() async {
         guard let current = pending else { return }
         busyText = "重新取支付串…"
-        let prepay = await client.prePay(orderNo: current.orderId, payType: current.payType)
+        let outcome = await requestPrePay(orderNo: current.orderId, preferred: current.payType)
         busyText = ""
-        guard prepay.ok, let data = prepay.dataObject else {
-            errorMessage = prepay.friendlyMessage
+        guard let picked = outcome.picked else {
+            lastPrepayError = outcome.detail
+            errorMessage = outcome.detail
             return
         }
-        pending?.prepayParam = data.text("prepayParam")
+        pending?.prepayParam = picked.param
+        pending?.payType = picked.payType
+        lastPrepayError = nil
         persistPending()
+        noticeMessage = "已取到\(PGProtocol.payTitle(picked.payType))支付串（\(picked.param.count) 字符）"
+    }
+
+    /// 依次试几条支付渠道，把每一次的原始 code/msg 都记进日志。
+    /// 服务端对「渠道没开通 / 订单状态不对」只回一句 msg，不同网点开通的渠道也不一样，
+    /// 所以这里不猜，直接挨个问一遍，拿到第一个有串的就用。
+    struct PrePayOutcome {
+        var picked: (payType: Int, param: String)?
+        var detail: String
+    }
+
+    func requestPrePay(orderNo: String, preferred: Int) async -> PrePayOutcome {
+        var types: [Int] = [preferred]
+        for candidate in [PGProtocol.payTypeAlipay, PGProtocol.payTypeWeChat,
+                          PGProtocol.payTypeWallet, 15] where !types.contains(candidate) {
+            types.append(candidate)
+        }
+        var notes: [String] = []
+        for type in types {
+            let response = await client.prePay(orderNo: orderNo, payType: type)
+            let title = PGProtocol.payTitle(type)
+            if response.ok {
+                let param = (response.dataObject ?? [:]).text("prepayParam")
+                if param.isEmpty {
+                    let note = "\(title)（payType=\(type)）→ code=0 但没有 prepayParam"
+                    notes.append(note)
+                    log("取支付串 \(note) body=\(String(response.body.prefix(200)))")
+                } else {
+                    log("取支付串成功：\(title)（payType=\(type)）\(param.count) 字符")
+                    return PrePayOutcome(picked: (type, param),
+                                         detail: notes.joined(separator: "；"))
+                }
+            } else {
+                let note = "\(title)（payType=\(type)）→ code=\(response.code) \(response.message)"
+                notes.append(note)
+                log("取支付串 \(note) body=\(String(response.body.prefix(300)))")
+                if response.isUnauthorized {
+                    return PrePayOutcome(picked: nil, detail: "登录已失效，请重新登录后再试")
+                }
+            }
+        }
+        return PrePayOutcome(picked: nil, detail: notes.joined(separator: "\n"))
     }
 
     /// 在待支付面板里切换支付宝 / 微信：拿同一个订单号重新取一次支付串。
