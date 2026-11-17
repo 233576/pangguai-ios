@@ -24,6 +24,22 @@ struct PGBalanceItem: Codable, Identifiable, Hashable {
         Double(remainCoin.replacingOccurrences(of: ",", with: "")) ?? 0
     }
 
+    /// 实付金额（`payPrice` 优先，没有就用标价）。用来判断「这笔到底付没付钱」。
+    var paidAmount: Double {
+        for raw in [payPrice, markPrice] where !raw.isEmpty {
+            if let value = Double(raw) { return value }
+        }
+        return 0
+    }
+
+    /// 状态文案的最终版：服务端状态码 + 金额双保险。
+    /// 取消掉的订单在部分网点会被回写成 3（已完成），金额是 0，这里纠回「已取消」。
+    var displayStatusText: String {
+        if status == 3 && paidAmount <= 0 { return "已取消" }
+        if status == 2 && paidAmount <= 0 { return "未付款" }
+        return statusText
+    }
+
     var amountText: String {
         remainCoin.isEmpty ? "—" : "¥\(remainCoin)"
     }
@@ -105,11 +121,14 @@ struct PGOrder: Codable, Identifiable, Hashable {
     var functionName: String
     var minutes: Int
 
+    /// 服务端 `orderStatus` 的真实取值（对齐 wash 项目 `getOrderStatus()`）：
+    /// 0 待支付 / 1 订单超时 / 2 已支付 / 3 已完成。之前按「1=已支付」写成 4 档，
+    /// 会把超时未付的单子当成已支付去倒计时，这是错的。
     var statusText: String {
         switch status {
         case 0: return "待支付"
-        case 1: return "已支付"
-        case 2: return "进行中"
+        case 1: return "已超时"
+        case 2: return "已支付"
         case 3: return "已完成"
         case 4: return "已取消"
         case 5: return "退款中"
@@ -119,6 +138,9 @@ struct PGOrder: Codable, Identifiable, Hashable {
     }
 
     var isUnpaid: Bool { status == 0 }
+
+    /// 只有「已支付」才是真的在洗（洗衣机是先付款后启动）。
+    var isPaid: Bool { status == 2 }
 
     var amountText: String {
         if !payPrice.isEmpty { return "¥\(payPrice)" }
@@ -146,9 +168,9 @@ struct PGOrder: Codable, Identifiable, Hashable {
         return start.addingTimeInterval(TimeInterval(minutes * 60))
     }
 
-    /// 只有「已支付 / 进行中」且还没到点，才算正在洗。
+    /// 只有「已支付」（2）且还没到点，才算正在洗。
     func isRunning(now: Date = Date()) -> Bool {
-        guard status == 1 || status == 2, let end = endsAt else { return false }
+        guard status == 2, let end = endsAt else { return false }
         return end > now
     }
 
