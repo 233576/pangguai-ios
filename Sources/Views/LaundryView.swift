@@ -9,6 +9,7 @@ struct LaundryView: View {
     @State private var showingLogin = false
     @State private var showingScan = false
     @State private var showingPay = false
+    @State private var showingRecharge = false
     @State private var confirming: PGSku?
 
     var body: some View {
@@ -66,6 +67,9 @@ struct LaundryView: View {
             if let pending = store.pending {
                 PaySheet(payment: pending).environmentObject(store)
             }
+        }
+        .sheet(isPresented: $showingRecharge) {
+            RechargeView().environmentObject(store)
         }
         .confirmationDialog(
             confirming.map { "确认下单：\($0.name) \($0.priceText)" } ?? "",
@@ -158,6 +162,17 @@ struct LaundryView: View {
             Spacer()
 
             if store.loggedIn {
+                Button("充值") { showingRecharge = true }
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundStyle(Flat.orange)
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 7)
+                    .background(
+                        RoundedRectangle(cornerRadius: 10, style: .continuous)
+                            .fill(Flat.orange.opacity(0.15))
+                    )
+                    .buttonStyle(.plain)
+
                 Button("退出") { store.logout() }
                     .font(.system(size: 13, weight: .semibold))
                     .foregroundStyle(Flat.textSecondary)
