@@ -6,6 +6,7 @@ struct SettingsView: View {
     @EnvironmentObject private var store: AppStore
 
     @State private var showingLogin = false
+    @State private var showingRecharge = false
     @State private var copiedToken: String?
 
     var body: some View {
@@ -27,6 +28,9 @@ struct SettingsView: View {
         }
         .sheet(isPresented: $showingLogin) {
             LoginSheet().environmentObject(store)
+        }
+        .sheet(isPresented: $showingRecharge) {
+            RechargeView().environmentObject(store)
         }
     }
 
@@ -94,42 +98,45 @@ struct SettingsView: View {
 
     private var payCard: some View {
         VStack(alignment: .leading, spacing: 12) {
-            FlatSectionHeader(title: "默认支付方式")
+            FlatSectionHeader(title: "支付方式")
             HStack(spacing: 10) {
-                payOption(title: "支付宝", detail: "扫码付", value: PGProtocol.payTypeAlipay)
-                payOption(title: "微信", detail: "扫一扫付", value: PGProtocol.payTypeWeChat)
+                ZStack {
+                    Circle().fill(Flat.orange.opacity(0.16)).frame(width: 38, height: 38)
+                    Image(systemName: "wallet.bifold.fill")
+                        .font(.system(size: 15, weight: .semibold))
+                        .foregroundStyle(Flat.orange)
+                }
+                VStack(alignment: .leading, spacing: 3) {
+                    Text("余额支付")
+                        .font(.system(size: 15, weight: .semibold))
+                        .foregroundStyle(Flat.textPrimary)
+                    Text("当前余额 ¥ \(store.user?.balanceText ?? "—")")
+                        .font(.system(size: 12))
+                        .foregroundStyle(Flat.textTertiary)
+                }
+                Spacer()
+                Button {
+                    showingRecharge = true
+                } label: {
+                    Text("充值")
+                        .font(.system(size: 13, weight: .semibold))
+                        .foregroundStyle(Flat.orange)
+                        .padding(.horizontal, 14)
+                        .padding(.vertical, 8)
+                        .background(
+                            RoundedRectangle(cornerRadius: 10, style: .continuous)
+                                .fill(Flat.orange.opacity(0.15))
+                        )
+                }
+                .buttonStyle(.plain)
             }
-            HStack(spacing: 10) {
-                payOption(title: "钱包余额", detail: "需先充值", value: PGProtocol.payTypeWallet)
-                payOption(title: "支付宝免密", detail: "小额直扣", value: 15)
-            }
-            Text("下单后 App 会用选中的方式取支付串，出二维码；支付面板里还能随时切换支付宝 / 微信，订单号不变。")
+            Text("这台机器只支持余额扣款：下单后一次点击就扣余额、机器直接启动，不需要扫码。余额可在官方充值页充。")
                 .font(.system(size: 11))
                 .foregroundStyle(Flat.textTertiary)
                 .fixedSize(horizontal: false, vertical: true)
         }
         .padding(16)
         .flatCard()
-    }
-
-    private func payOption(title: String, detail: String, value: Int) -> some View {
-        Button {
-            store.setPayType(value)
-        } label: {
-            VStack(spacing: 3) {
-                Text(title)
-                    .font(.system(size: 14, weight: .semibold))
-                Text(detail)
-                    .font(.system(size: 11))
-                    .opacity(0.72)
-            }
-            .foregroundStyle(store.settings.payType == value ? Flat.accent : Flat.textSecondary)
-            .frame(maxWidth: .infinity)
-            .padding(.vertical, 12)
-            .flatPill(selected: store.settings.payType == value,
-                      tint: value == PGProtocol.payTypeWeChat ? Flat.green : Flat.accent)
-        }
-        .buttonStyle(.plain)
     }
 
     private var refreshCard: some View {
