@@ -444,23 +444,29 @@ final class AppStore: ObservableObject {
     }
 
     /// 在待支付面板里切换支付宝 / 微信：拿同一个订单号重新取一次支付串。
-    func switchPayType(_ type: Int) async {
-        guard var current = pending else { return }
-        guard current.payType != type else { return }
+    /// 返回非 nil 表示失败原因，交给支付面板直接弹出来（挂在这个页面上，用户才看得见）。
+    @discardableResult
+    func switchPayType(_ type: Int) async -> String? {
+        guard var current = pending else { return "没有待支付订单" }
+        guard current.payType != type else { return nil }
         busyText = "切换为\(PGProtocol.payTitle(type))…"
         let prepay = await client.prePay(orderNo: current.orderId, payType: type)
         busyText = ""
         guard prepay.ok else {
             log("切换支付方式失败 → code=\(prepay.code) \(prepay.message)")
-            errorMessage = "切换失败：\(prepay.friendlyMessage)"
-            return
+            return "切换为\(PGProtocol.payTitle(type))失败：\(prepay.friendlyMessage)"
         }
         let data = prepay.dataObject ?? [:]
+        let param = data.text("prepayParam")
         current.payType = type
-        current.prepayParam = data.text("prepayParam")
+        current.prepayParam = param
         pending = current
         persistPending()
-        log("支付方式切换为 \(PGProtocol.payTitle(type))，支付串 \(current.prepayParam.count) 字符")
+        log("支付方式切换为 \(PGProtocol.payTitle(type))，支付串 \(param.count) 字符")
+        if param.isEmpty {
+            return "服务端没有返回\(PGProtocol.payTitle(type))支付串（可能这个渠道没开通）。可以切回支付宝，或点「重新取支付串」再试。"
+        }
+        return nil
     }
 
     /// 查这笔单付了没；已付就把本地挂单清掉。
