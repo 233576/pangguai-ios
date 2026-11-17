@@ -6,6 +6,7 @@ final class AppStore: ObservableObject {
 
     @Published private(set) var settings = Settings()
     @Published private(set) var user: PGUser?
+    @Published private(set) var balances: [PGBalanceItem] = []
     @Published private(set) var recentDevices: [PGRecentDevice] = []
     @Published private(set) var device: PGDeviceDetail?
     @Published private(set) var skus: [PGSku] = []
@@ -232,6 +233,41 @@ final class AppStore: ObservableObject {
             persistSettings()
         }
         log("用户信息：\(user?.phone ?? "-") 余额 \(user?.balanceText ?? "-")")
+        await refreshBalances()
+    }
+
+    /// 店铺（受限）余额：`/user/astrict/list`。充值页与支付页都要显示，钱到底进了哪儿一目了然。
+    func refreshBalances() async {
+        guard loggedIn else { return }
+        let response = await client.astrictList()
+        if response.isUnauthorized {
+            logout()
+            errorMessage = "登录已过期，请重新登录"
+            return
+        }
+        guard response.ok else {
+            log("店铺余额失败：\(response.message)")
+            return
+        }
+        let list = response.dataArray ?? []
+        balances = list.map { row in
+            PGBalanceItem(remainCoin: row.text("remainCoin"),
+                          shopNames: row.text("shopNames"),
+                          machineTypeNames: row.text("machineTypeNames"))
+        }
+        let total = balances.reduce(0) { $0 + $1.amount }
+        if !balances.isEmpty {
+            log("店铺余额：\(balances.count) 项，合计 ¥\(String(format: "%.2f", total))")
+        }
+    }
+
+    /// 当前网点可用余额（店铺余额合计）。
+    var shopBalanceTotal: Double {
+        balances.reduce(0) { $0 + $1.amount }
+    }
+
+    var shopBalanceText: String {
+        balances.isEmpty ? "—" : "¥\(String(format: "%.2f", shopBalanceTotal))"
     }
 
     func refreshDevices() async {
