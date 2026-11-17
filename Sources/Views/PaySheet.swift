@@ -104,12 +104,15 @@ struct PaySheet: View {
             }
 
             VStack(alignment: .leading, spacing: 3) {
-                Text("账户余额")
+                Text("账号余额")
                     .font(.system(size: 12))
                     .foregroundStyle(Flat.textTertiary)
                 Text("¥ \(balanceText)")
                     .font(.system(size: 17, weight: .semibold, design: .rounded))
                     .foregroundStyle(Flat.textPrimary)
+                Text("店铺余额 \(store.shopBalanceText)")
+                    .font(.system(size: 11))
+                    .foregroundStyle(store.shopBalanceTotal > 0 ? Flat.green : Flat.textTertiary)
             }
 
             Spacer()
