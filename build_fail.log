@@ -1,0 +1,427 @@
+ï»¿2026-11-17T07:27:28.7875770Z Current runner version: '2.338.2'
+2026-11-17T07:27:28.7909510Z ##[group]Runner Image Provisioner
+2026-11-17T07:27:28.7910720Z Hosted Compute Agent
+2026-11-17T07:27:28.7911510Z Version: 20260819.586
+2026-11-17T07:27:28.7912370Z Commit: 3cc4a88dfa507ef76119ad1bb3eccc6378bb2b76
+2026-11-17T07:27:28.7913420Z Build Date: 2026-08-18T23:20:18Z
+2026-11-17T07:27:28.7914380Z Worker ID: {07ca04e3-e13c-4138-a2c6-8ce7c5333d83}
+2026-11-17T07:27:28.7915420Z Azure Region: westus
+2026-11-17T07:27:28.7916180Z ##[endgroup]
+2026-11-17T07:27:28.7918470Z ##[group]Operating System
+2026-11-17T07:27:28.7919320Z macOS
+2026-11-17T07:27:28.7919990Z 15.7.9
+2026-11-17T07:27:28.7920660Z 24G830
+2026-11-17T07:27:28.7921940Z ##[endgroup]
+2026-11-17T07:27:28.7922730Z ##[group]Runner Image
+2026-11-17T07:27:28.7923550Z Image: macos-15
+2026-11-17T07:27:28.7924300Z Version: 20260824.0482.1
+2026-11-17T07:27:28.7926170Z Included Software: https://github.com/actions/runner-images/blob/macos-15/20260824.0482/images/macos/macos-15-Readme.md
+2026-11-17T07:27:28.7928610Z Image Release: https://github.com/actions/runner-images/releases/tag/macos-15%2F20260824.0482
+2026-11-17T07:27:28.7930140Z ##[endgroup]
+2026-11-17T07:27:28.7931980Z ##[group]GITHUB_TOKEN Permissions
+2026-11-17T07:27:28.7934790Z Contents: read
+2026-11-17T07:27:28.7935580Z Metadata: read
+2026-11-17T07:27:28.7936330Z Packages: read
+2026-11-17T07:27:28.7937060Z ##[endgroup]
+2026-11-17T07:27:28.7940880Z Secret source: Actions
+2026-11-17T07:27:28.7942160Z Cache mode: write
+2026-11-17T07:27:28.7943110Z Prepare workflow directory
+2026-11-17T07:27:28.8502270Z Prepare all required actions
+2026-11-17T07:27:28.8580450Z Getting action download info
+2026-11-17T07:27:29.1954570Z Download action repository 'actions/checkout@v4' (SHA:11d5960a326750d5838078e36cf38b85af677262)
+2026-11-17T07:27:29.4515990Z Download action repository 'actions/upload-artifact@v4' (SHA:ea165f8d65b6e75b540449e92b4886f43607fa02)
+2026-11-17T07:27:30.0169700Z Complete job name: build
+2026-11-17T07:27:30.1570080Z ##[group]Run actions/checkout@v4
+2026-11-17T07:27:30.1573020Z with:
+2026-11-17T07:27:30.1574270Z   repository: 233576/pangguai-ios
+2026-11-17T07:27:30.1586650Z   token: ***
+2026-11-17T07:27:30.1587620Z   ssh-strict: true
+2026-11-17T07:27:30.1588440Z   ssh-user: git
+2026-11-17T07:27:30.1589270Z   persist-credentials: true
+2026-11-17T07:27:30.1590200Z   clean: true
+2026-11-17T07:27:30.1591050Z   sparse-checkout-cone-mode: true
+2026-11-17T07:27:30.1592050Z   fetch-depth: 1
+2026-11-17T07:27:30.1592860Z   fetch-tags: false
+2026-11-17T07:27:30.1593710Z   show-progress: true
+2026-11-17T07:27:30.1594580Z   lfs: false
+2026-11-17T07:27:30.1595400Z   submodules: false
+2026-11-17T07:27:30.1596290Z   set-safe-directory: true
+2026-11-17T07:27:30.1597260Z   allow-unsafe-pr-checkout: false
+2026-11-17T07:27:30.1600320Z ##[endgroup]
+2026-11-17T07:27:30.4911850Z Syncing repository: 233576/pangguai-ios
+2026-11-17T07:27:30.4915330Z ##[group]Getting Git version info
+2026-11-17T07:27:30.4917080Z Working directory is '/Users/runner/work/pangguai-ios/pangguai-ios'
+2026-11-17T07:27:30.4919310Z [command]/usr/local/bin/git version
+2026-11-17T07:27:30.5253600Z git version 2.55.0
+2026-11-17T07:27:30.5283060Z ##[endgroup]
+2026-11-17T07:27:30.5294820Z Copying '/Users/runner/.gitconfig' to '/Users/runner/work/_temp/94378220-5f8a-42ef-b62e-dbfb09031a66/.gitconfig'
+2026-11-17T07:27:30.5314120Z Temporarily overriding HOME='/Users/runner/work/_temp/94378220-5f8a-42ef-b62e-dbfb09031a66' before making global git config changes
+2026-11-17T07:27:30.5317600Z Adding repository directory to the temporary git global config as a safe directory
+2026-11-17T07:27:30.5320570Z [command]/usr/local/bin/git config --global --add safe.directory /Users/runner/work/pangguai-ios/pangguai-ios
+2026-11-17T07:27:30.5466560Z Deleting the contents of '/Users/runner/work/pangguai-ios/pangguai-ios'
+2026-11-17T07:27:30.5474480Z ##[group]Initializing the repository
+2026-11-17T07:27:30.5480080Z [command]/usr/local/bin/git init /Users/runner/work/pangguai-ios/pangguai-ios
+2026-11-17T07:27:30.5911790Z hint: Using 'master' as the name for the initial branch. This default branch name
+2026-11-17T07:27:30.5926950Z hint: will change to "main" in Git 3.0. To configure the initial branch name
+2026-11-17T07:27:30.5930800Z hint: to use in all of your new repositories, which will suppress this warning,
+2026-11-17T07:27:30.5979470Z hint: call:
+2026-11-17T07:27:30.5995710Z hint:
+2026-11-17T07:27:30.6032100Z hint: 	git config --global init.defaultBranch <name>
+2026-11-17T07:27:30.6037260Z hint:
+2026-11-17T07:27:30.6092040Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+2026-11-17T07:27:30.6228100Z hint: 'development'. The just-created branch can be renamed via this command:
+2026-11-17T07:27:30.6363620Z hint:
+2026-11-17T07:27:30.6461190Z hint: 	git branch -m <name>
+2026-11-17T07:27:30.6465150Z hint:
+2026-11-17T07:27:30.6472060Z hint: Disable this message with "git config set advice.defaultBranchName false"
+2026-11-17T07:27:30.6527850Z Initialized empty Git repository in /Users/runner/work/pangguai-ios/pangguai-ios/.git/
+2026-11-17T07:27:30.6534980Z [command]/usr/local/bin/git remote add origin https://github.com/233576/pangguai-ios
+2026-11-17T07:27:30.6541490Z ##[endgroup]
+2026-11-17T07:27:30.6544140Z ##[group]Disabling automatic garbage collection
+2026-11-17T07:27:30.6546540Z [command]/usr/local/bin/git config --local gc.auto 0
+2026-11-17T07:27:30.6552510Z ##[endgroup]
+2026-11-17T07:27:30.6555510Z ##[group]Setting up auth
+2026-11-17T07:27:30.6558070Z [command]/usr/local/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-11-17T07:27:30.6565640Z [command]/usr/local/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-11-17T07:27:30.7878540Z [command]/usr/local/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-11-17T07:27:30.7991380Z [command]/usr/local/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-11-17T07:27:30.9568400Z [command]/usr/local/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-11-17T07:27:31.0619950Z [command]/usr/local/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-11-17T07:27:31.1659540Z [command]/usr/local/bin/git config --local http.https://github.com/.extraheader AUTHORIZATION: basic ***
+2026-11-17T07:27:31.1781310Z ##[endgroup]
+2026-11-17T07:27:31.1784170Z ##[group]Fetching the repository
+2026-11-17T07:27:31.1793130Z [command]/usr/local/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +9c24811c1789df5980cfc8d24ff450b7829b52fa:refs/remotes/origin/main
+2026-11-17T07:27:31.7722360Z From https://github.com/233576/pangguai-ios
+2026-11-17T07:27:31.7738050Z  * [new ref]         9c24811c1789df5980cfc8d24ff450b7829b52fa -> origin/main
+2026-11-17T07:27:31.8145300Z ##[endgroup]
+2026-11-17T07:27:31.8148660Z ##[group]Determining the checkout info
+2026-11-17T07:27:31.8152270Z ##[endgroup]
+2026-11-17T07:27:31.8154810Z [command]/usr/local/bin/git sparse-checkout disable
+2026-11-17T07:27:31.8161850Z [command]/usr/local/bin/git config --local --unset-all extensions.worktreeConfig
+2026-11-17T07:27:31.8169750Z ##[group]Checking out the ref
+2026-11-17T07:27:31.8173390Z [command]/usr/local/bin/git checkout --progress --force -B main refs/remotes/origin/main
+2026-11-17T07:27:31.8522720Z Switched to a new branch 'main'
+2026-11-17T07:27:31.8531160Z branch 'main' set up to track 'origin/main'.
+2026-11-17T07:27:31.8542380Z ##[endgroup]
+2026-11-17T07:27:31.8676470Z [command]/usr/local/bin/git log -1 --format=%H
+2026-11-17T07:27:31.8790060Z 9c24811c1789df5980cfc8d24ff450b7829b52fa
+2026-11-17T07:27:31.9202340Z ##[group]Run xcodebuild -version
+2026-11-17T07:27:31.9205040Z [36;1mxcodebuild -version[0m
+2026-11-17T07:27:31.9207590Z [36;1mxcrun --sdk iphoneos --show-sdk-version[0m
+2026-11-17T07:27:31.9214330Z [36;1mswift --version[0m
+2026-11-17T07:27:31.9291340Z shell: /bin/bash -e {0}
+2026-11-17T07:27:31.9293450Z ##[endgroup]
+2026-11-17T07:27:32.0971030Z Xcode 16.4
+2026-11-17T07:27:32.0973420Z Build version 16F6
+2026-11-17T07:27:34.9896550Z 18.5
+2026-11-17T07:27:39.3694160Z Apple Swift version 6.1.2 (swiftlang-6.1.2.1.2 clang-1700.0.13.5)
+2026-11-17T07:27:39.3695230Z Target: x86_64-apple-macosx15.0
+2026-11-17T07:27:39.3800290Z swift-driver version: 1.120.5 
+2026-11-17T07:27:39.3917260Z ##[group]Run brew install xcodegen
+2026-11-17T07:27:39.3918030Z [36;1mbrew install xcodegen[0m
+2026-11-17T07:27:39.3918650Z [36;1mxcodegen --version[0m
+2026-11-17T07:27:39.3977810Z shell: /bin/bash -e {0}
+2026-11-17T07:27:39.3979080Z ##[endgroup]
+2026-11-17T07:27:44.4108970Z [32m==>[0m [1mDownloading bottle manifests[0m
+2026-11-17T07:27:44.4467060Z âï¸ Bottle Manifest xcodegen (2.46.0)
+2026-11-17T07:27:44.4472370Z [34m==>[0m [1mWould install 1 formula:[0m
+2026-11-17T07:27:44.4473510Z xcodegen
+2026-11-17T07:27:44.4524500Z [32m==>[0m [1mFetching downloads for: [32mxcodegen[39m[0m
+2026-11-17T07:27:44.9061340Z âï¸ Bottle xcodegen (2.46.0)
+2026-11-17T07:27:44.9641830Z [34m==>[0m [1mPouring xcodegen--2.46.0.sonoma.bottle.1.tar.gz[0m
+2026-11-17T07:27:45.2525260Z ðº  /usr/local/Cellar/xcodegen/2.46.0: 38 files, 7.8MB
+2026-11-17T07:27:45.2919540Z Version: 2.46.0
+2026-11-17T07:27:45.2994390Z ##[group]Run curl -sSL -o /tmp/wxopen.zip https://dldir1.qq.com/WechatWebDev/opensdk/XCFramework/OpenSDK2.0.9.zip
+2026-11-17T07:27:45.2996290Z [36;1mcurl -sSL -o /tmp/wxopen.zip https://dldir1.qq.com/WechatWebDev/opensdk/XCFramework/OpenSDK2.0.9.zip[0m
+2026-11-17T07:27:45.2997530Z [36;1mmkdir -p sdk[0m
+2026-11-17T07:27:45.2998060Z [36;1munzip -q /tmp/wxopen.zip -d sdk[0m
+2026-11-17T07:27:45.2998730Z [36;1mls -R sdk | head -40[0m
+2026-11-17T07:27:45.3062260Z shell: /bin/bash -e {0}
+2026-11-17T07:27:45.3062860Z ##[endgroup]
+2026-11-17T07:27:50.4508740Z WechatOpenSDK.xcframework
+2026-11-17T07:27:50.4659560Z 
+2026-11-17T07:27:50.4689580Z sdk/WechatOpenSDK.xcframework:
+2026-11-17T07:27:50.4691680Z Info.plist
+2026-11-17T07:27:50.4692270Z ios-arm64
+2026-11-17T07:27:50.4694840Z ios-arm64_x86_64-simulator
+2026-11-17T07:27:50.4696900Z PrivacyInfo.xcprivacy
+2026-11-17T07:27:50.4698870Z README.txt
+2026-11-17T07:27:50.4702050Z 
+2026-11-17T07:27:50.4706910Z sdk/WechatOpenSDK.xcframework/ios-arm64:
+2026-11-17T07:27:50.4709750Z WechatOpenSDK.framework
+2026-11-17T07:27:50.4712550Z 
+2026-11-17T07:27:50.4714980Z sdk/WechatOpenSDK.xcframework/ios-arm64/WechatOpenSDK.framework:
+2026-11-17T07:27:50.4716030Z Headers
+2026-11-17T07:27:50.4716610Z Info.plist
+2026-11-17T07:27:50.4717310Z Modules
+2026-11-17T07:27:50.4717890Z WechatOpenSDK
+2026-11-17T07:27:50.4718310Z 
+2026-11-17T07:27:50.4719320Z sdk/WechatOpenSDK.xcframework/ios-arm64/WechatOpenSDK.framework/Headers:
+2026-11-17T07:27:50.4720610Z WechatAuthSDK.h
+2026-11-17T07:27:50.4721250Z WechatOpenSDK.h
+2026-11-17T07:27:50.4721980Z WXApi.h
+2026-11-17T07:27:50.4722510Z WXApiObject.h
+2026-11-17T07:27:50.4722910Z 
+2026-11-17T07:27:50.4723620Z sdk/WechatOpenSDK.xcframework/ios-arm64/WechatOpenSDK.framework/Modules:
+2026-11-17T07:27:50.4724920Z module.modulemap
+2026-11-17T07:27:50.4725350Z 
+2026-11-17T07:27:50.4725880Z sdk/WechatOpenSDK.xcframework/ios-arm64_x86_64-simulator:
+2026-11-17T07:27:50.4726740Z WechatOpenSDK.framework
+2026-11-17T07:27:50.4727100Z 
+2026-11-17T07:27:50.4727740Z sdk/WechatOpenSDK.xcframework/ios-arm64_x86_64-simulator/WechatOpenSDK.framework:
+2026-11-17T07:27:50.4728810Z Headers
+2026-11-17T07:27:50.4729240Z Info.plist
+2026-11-17T07:27:50.4729700Z Modules
+2026-11-17T07:27:50.4730210Z WechatOpenSDK
+2026-11-17T07:27:50.4730530Z 
+2026-11-17T07:27:50.4731210Z sdk/WechatOpenSDK.xcframework/ios-arm64_x86_64-simulator/WechatOpenSDK.framework/Headers:
+2026-11-17T07:27:50.4732390Z WechatAuthSDK.h
+2026-11-17T07:27:50.4733090Z WechatOpenSDK.h
+2026-11-17T07:27:50.4733580Z WXApi.h
+2026-11-17T07:27:50.4828430Z ##[group]Run xcodegen generate --spec project.yml
+2026-11-17T07:27:50.4830230Z [36;1mxcodegen generate --spec project.yml[0m
+2026-11-17T07:27:50.4895970Z shell: /bin/bash -e {0}
+2026-11-17T07:27:50.4896650Z ##[endgroup]
+2026-11-17T07:27:50.5279090Z âï¸  Generating plists...
+2026-11-17T07:27:50.5290580Z âï¸  Generating project...
+2026-11-17T07:27:50.5462360Z âï¸  Writing project...
+2026-11-17T07:27:50.5573400Z Created project at /Users/runner/work/pangguai-ios/pangguai-ios/Pangguai.xcodeproj
+2026-11-17T07:27:50.5666000Z ##[group]Run set -o pipefail
+2026-11-17T07:27:50.5666720Z [36;1mset -o pipefail[0m
+2026-11-17T07:27:50.5667230Z [36;1mmkdir -p build[0m
+2026-11-17T07:27:50.5667720Z [36;1mxcodebuild \[0m
+2026-11-17T07:27:50.5668400Z [36;1m  -project Pangguai.xcodeproj \[0m
+2026-11-17T07:27:50.5669200Z [36;1m  -scheme Pangguai \[0m
+2026-11-17T07:27:50.5669970Z [36;1m  -configuration Release \[0m
+2026-11-17T07:27:50.5670590Z [36;1m  -sdk iphoneos \[0m
+2026-11-17T07:27:50.5671220Z [36;1m  -destination 'generic/platform=iOS' \[0m
+2026-11-17T07:27:50.5672250Z [36;1m  -derivedDataPath build \[0m
+2026-11-17T07:27:50.5672930Z [36;1m  CODE_SIGNING_ALLOWED=NO \[0m
+2026-11-17T07:27:50.5673520Z [36;1m  CODE_SIGNING_REQUIRED=NO \[0m
+2026-11-17T07:27:50.5674330Z [36;1m  CODE_SIGN_IDENTITY="" \[0m
+2026-11-17T07:27:50.5675120Z [36;1m  DEVELOPMENT_TEAM="" \[0m
+2026-11-17T07:27:50.5675780Z [36;1m  build 2>&1 | tee build/xcodebuild.log[0m
+2026-11-17T07:27:50.5745110Z shell: /bin/bash -e {0}
+2026-11-17T07:27:50.5745750Z ##[endgroup]
+2026-11-17T07:27:52.4722780Z Command line invocation:
+2026-11-17T07:27:52.4739020Z     /Applications/Xcode_16.4.app/Contents/Developer/usr/bin/xcodebuild -project Pangguai.xcodeproj -scheme Pangguai -configuration Release -sdk iphoneos -destination generic/platform=iOS -derivedDataPath build CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY= DEVELOPMENT_TEAM= build
+2026-11-17T07:27:52.4759870Z 
+2026-11-17T07:27:52.4781930Z Build settings from command line:
+2026-11-17T07:27:52.4787520Z     CODE_SIGN_IDENTITY = 
+2026-11-17T07:27:52.4881920Z     CODE_SIGNING_ALLOWED = NO
+2026-11-17T07:27:52.4888220Z     CODE_SIGNING_REQUIRED = NO
+2026-11-17T07:27:52.4893430Z     DEVELOPMENT_TEAM = 
+2026-11-17T07:27:52.4900510Z     SDKROOT = iphoneos18.5
+2026-11-17T07:27:52.4905610Z 
+2026-11-17T07:27:54.3814970Z note: Using codesigning identity override: 
+2026-11-17T07:27:55.6443010Z ComputePackagePrebuildTargetDependencyGraph
+2026-11-17T07:27:55.8011410Z 
+2026-11-17T07:27:55.8064140Z Prepare packages
+2026-11-17T07:27:55.8065550Z 
+2026-11-17T07:27:55.8090640Z CreateBuildRequest
+2026-11-17T07:27:55.8091240Z 
+2026-11-17T07:27:55.8092700Z SendProjectDescription
+2026-11-17T07:27:55.8301150Z 
+2026-11-17T07:27:55.8301920Z CreateBuildOperation
+2026-11-17T07:27:55.8448510Z 
+2026-11-17T07:27:55.8485750Z ComputeTargetDependencyGraph
+2026-11-17T07:27:55.8776830Z note: Building targets in dependency order
+2026-11-17T07:27:55.8815450Z note: Target dependency graph (1 target)
+2026-11-17T07:27:55.8820260Z     Target 'Pangguai' in project 'Pangguai' (no dependencies)
+2026-11-17T07:27:55.8822940Z 
+2026-11-17T07:27:55.8823740Z GatherProvisioningInputs
+2026-11-17T07:27:55.8824180Z 
+2026-11-17T07:27:55.9111540Z CreateBuildDescription
+2026-11-17T07:27:55.9877010Z 
+2026-11-17T07:27:55.9903140Z ExecuteExternalTool /Applications/Xcode_16.4.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -v -E -dM -isysroot /Applications/Xcode_16.4.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS18.5.sdk -x c -c /dev/null
+2026-11-17T07:27:57.9625540Z 
+2026-11-17T07:27:57.9663100Z ExecuteExternalTool /Applications/Xcode_16.4.app/Contents/Developer/usr/bin/actool --print-asset-tag-combinations --output-format xml1 /Users/runner/work/pangguai-ios/pangguai-ios/Sources/Resources/Assets.xcassets
+2026-11-17T07:28:02.5728110Z 
+2026-11-17T07:28:02.5730700Z ExecuteExternalTool /Applications/Xcode_16.4.app/Contents/Developer/usr/bin/actool --version --output-format xml1
+2026-11-17T07:28:02.5732840Z 
+2026-11-17T07:28:02.5736810Z ExecuteExternalTool /Applications/Xcode_16.4.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc --version
+2026-11-17T07:28:02.8336950Z 
+2026-11-17T07:28:02.8576550Z ExecuteExternalTool /Applications/Xcode_16.4.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/ld -version_details
+2026-11-17T07:28:03.3560140Z 
+2026-11-17T07:28:03.3929630Z Build description signature: 8a0291196e60a5bab1d7a1e4538b9393
+2026-11-17T07:28:03.3935720Z Build description path: /Users/runner/work/pangguai-ios/pangguai-ios/build/Build/Intermediates.noindex/XCBuildData/8a0291196e60a5bab1d7a1e4538b9393.xcbuilddata
+2026-11-17T07:28:03.4892240Z CreateBuildDirectory /Users/runner/work/pangguai-ios/pangguai-ios/build/Build/Products
+2026-11-17T07:28:03.5088070Z     cd /Users/runner/work/pangguai-ios/pangguai-ios/Pangguai.xcodeproj
+2026-11-17T07:28:03.5090380Z     builtin-create-build-directory /Users/runner/work/pangguai-ios/pangguai-ios/build/Build/Products
+2026-11-17T07:28:03.5093460Z 
+2026-11-17T07:28:03.5100950Z ClangStatCache /Applications/Xcode_16.4.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang-stat-cache /Applications/Xcode_16.4.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS18.5.sdk /Users/runner/work/pangguai-ios/pangguai-ios/build/SDKStatCaches.noindex/iphoneos18.5-22F76-a529daf784b3616c7c04a36aeb7f5c05.sdkstatcache
+2026-11-17T07:28:03.5108220Z     cd /Users/runner/work/pangguai-ios/pangguai-ios/Pangguai.xcodeproj
+2026-11-17T07:28:03.5115600Z     /Applications/Xcode_16.4.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang-stat-cache /Applications/Xcode_16.4.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS18.5.sdk -o /Users/runner/work/pangguai-ios/pangguai-ios/build/SDKStatCaches.noindex/iphoneos18.5-22F76-a529daf784b3616c7c04a36aeb7f5c05.sdkstatcache
+2026-11-17T07:28:07.1368190Z 
+2026-11-17T07:28:07.1729900Z CreateBuildDirectory /Users/runner/work/pangguai-ios/pangguai-ios/build/Build/Intermediates.noindex
+2026-11-17T07:28:07.1732560Z     cd /Users/runner/work/pangguai-ios/pangguai-ios/Pangguai.xcodeproj
+2026-11-17T07:28:07.1735520Z     builtin-create-build-directory /Users/runner/work/pangguai-ios/pangguai-ios/build/Build/Intermediates.noindex
+2026-11-17T07:28:07.1737730Z 
+2026-11-17T07:28:07.1740740Z WriteAuxiliaryFile /Users/runner/work/pangguai-ios/pangguai-ios/build/Build/Intermediates.noindex/Pangguai.build/Release-iphoneos/Pangguai-7963aebef455fb218666bad6ab346711-VFS-iphoneos/all-product-headers.yaml
+2026-11-17T07:28:07.1744460Z     cd /Users/runner/work/pangguai-ios/pangguai-ios/Pangguai.xcodeproj
+2026-11-17T07:28:07.1748240Z     write-file /Users/runner/work/pangguai-ios/pangguai-ios/build/Build/Intermediates.noindex/Pangguai.build/Release-iphoneos/Pangguai-7963aebef455fb218666bad6ab346711-VFS-iphoneos/all-product-headers.yaml
+2026-11-17T07:28:07.1750970Z 
+2026-11-17T07:28:07.1752800Z CreateBuildDirectory /Users/runner/work/pangguai-ios/pangguai-ios/build/Build/Products/Release-iphoneos
+2026-11-17T07:28:07.1755360Z     cd /Users/runner/work/pangguai-ios/pangguai-ios/Pangguai.xcodeproj
+2026-11-17T07:28:07.1758860Z     builtin-create-build-directory /Users/runner/work/pangguai-ios/pangguai-ios/build/Build/Products/Release-iphoneos
+2026-11-17T07:28:07.1761820Z 
+2026-11-17T07:28:07.1764650Z CreateBuildDirectory /Users/runner/work/pangguai-ios/pangguai-ios/build/Build/Intermediates.noindex/EagerLinkingTBDs/Release-iphoneos
+2026-11-17T07:28:07.1768500Z     cd /Users/runner/work/pangguai-ios/pangguai-ios/Pangguai.xcodeproj
+2026-11-17T07:28:07.1772900Z     builtin-create-build-directory /Users/runner/work/pangguai-ios/pangguai-ios/build/Build/Intermediates.noindex/EagerLinkingTBDs/Release-iphoneos
+2026-11-17T07:28:07.1776390Z 
+2026-11-17T07:28:07.1779770Z ProcessXCFramework /Users/runner/work/pangguai-ios/pangguai-ios/sdk/WechatOpenSDK.xcframework /Users/runner/work/pangguai-ios/pangguai-ios/build/Build/Products/Release-iphoneos/WechatOpenSDK.framework ios
+2026-11-17T07:28:07.1784380Z     cd /Users/runner/work/pangguai-ios/pangguai-ios/Pangguai.xcodeproj
+2026-11-17T07:28:07.1791440Z     builtin-process-xcframework --xcframework /Users/runner/work/pangguai-ios/pangguai-ios/sdk/WechatOpenSDK.xcframework --platform ios --target-path /Users/runner/work/pangguai-ios/pangguai-ios/build/Build/Products/Release-iphoneos
+2026-11-17T07:28:07.1795450Z 
+2026-11-17T07:28:07.1799340Z WriteAuxiliaryFile /Users/runner/work/pangguai-ios/pangguai-ios/build/Build/Intermediates.noindex/Pangguai.build/Release-iphoneos/Pangguai.build/Pangguai.hmap (in target 'Pangguai' from project 'Pangguai')
+2026-11-17T07:28:07.1803150Z     cd /Users/runner/work/pangguai-ios/pangguai-ios
+2026-11-17T07:28:07.1806110Z     write-file /Users/runner/work/pangguai-ios/pangguai-ios/build/Build/Intermediates.noindex/Pangguai.build/Release-iphoneos/Pangguai.build/Pangguai.hmap
+2026-11-17T07:28:07.1808660Z 
+2026-11-17T07:28:07.1811970Z WriteAuxiliaryFile /Users/runner/work/pangguai-ios/pangguai-ios/build/Build/Intermediates.noindex/Pangguai.build/Release-iphoneos/Pangguai.build/Pangguai.DependencyStaticMetadataFileList (in target 'Pangguai' from project 'Pangguai')
+2026-11-17T07:28:07.1815860Z     cd /Users/runner/work/pangguai-ios/pangguai-ios
+2026-11-17T07:28:07.1819070Z     write-file /Users/runner/work/pangguai-ios/pangguai-ios/build/Build/Intermediates.noindex/Pangguai.build/Release-iphoneos/Pangguai.build/Pangguai.DependencyStaticMetadataFileList
+2026-11-17T07:28:07.1822140Z 
+2026-11-17T07:28:07.1825490Z WriteAuxiliaryFile /Users/runner/work/pangguai-ios/pangguai-ios/build/Build/Intermediates.noindex/Pangguai.build/Release-iphoneos/Pangguai.build/Pangguai.DependencyMetadataFileList (in target 'Pangguai' from project 'Pangguai')
+2026-11-17T07:28:07.1829410Z     cd /Users/runner/work/pangguai-ios/pangguai-ios
+2026-11-17T07:28:07.1832570Z     write-file /Users/runner/work/pangguai-ios/pangguai-ios/build/Build/Intermediates.noindex/Pangguai.build/Release-iphoneos/Pangguai.build/Pangguai.DependencyMetadataFileList
+2026-11-17T07:28:07.1835370Z 
+2026-11-17T07:28:07.1838380Z WriteAuxiliaryFile /Users/runner/work/pangguai-ios/pangguai-ios/build/Build/Intermediates.noindex/Pangguai.build/Release-iphoneos/Pangguai.build/Pangguai-project-headers.hmap (in target 'Pangguai' from project 'Pangguai')
+2026-11-17T07:28:07.1894040Z     cd /Users/runner/work/pangguai-ios/pangguai-ios
+2026-11-17T07:28:07.1912290Z     write-file /Users/runner/work/pangguai-ios/pangguai-ios/build/Build/Intermediates.noindex/Pangguai.build/Release-iphoneos/Pangguai.build/Pangguai-project-headers.hmap
+2026-11-17T07:28:07.1918610Z 
+2026-11-17T07:28:07.1927220Z WriteAuxiliaryFile /Users/runner/work/pangguai-ios/pangguai-ios/build/Build/Intermediates.noindex/Pangguai.build/Release-iphoneos/Pangguai.build/Pangguai-own-target-headers.hmap (in target 'Pangguai' from project 'Pangguai')
+2026-11-17T07:28:07.1935290Z     cd /Users/runner/work/pangguai-ios/pangguai-ios
+2026-11-17T07:28:07.1948390Z     write-file /Users/runner/work/pangguai-ios/pangguai-ios/build/Build/Intermediates.noindex/Pangguai.build/Release-iphoneos/Pangguai.build/Pangguai-own-target-headers.hmap
+2026-11-17T07:28:07.1956170Z 
+2026-11-17T07:28:07.1961670Z WriteAuxiliaryFile /Users/runner/work/pangguai-ios/pangguai-ios/build/Build/Intermediates.noindex/Pangguai.build/Release-iphoneos/Pangguai.build/Pangguai-generated-files.hmap (in target 'Pangguai' from project 'Pangguai')
+2026-11-17T07:28:07.1969460Z     cd /Users/runner/work/pangguai-ios/pangguai-ios
+2026-11-17T07:28:07.1978640Z     write-file /Users/runner/work/pangguai-ios/pangguai-ios/build/Build/Intermediates.noindex/Pangguai.build/Release-iphoneos/Pangguai.build/Pangguai-generated-files.hmap
+2026-11-17T07:28:07.1984380Z 
+2026-11-17T07:28:07.1992670Z WriteAuxiliaryFile /Users/runner/work/pangguai-ios/pangguai-ios/build/Build/Intermediates.noindex/Pangguai.build/Release-iphoneos/Pangguai.build/Pangguai-all-target-headers.hmap (in target 'Pangguai' from project 'Pangguai')
+2026-11-17T07:28:07.1999050Z     cd /Users/runner/work/pangguai-ios/pangguai-ios
+2026-11-17T07:28:07.2005700Z     write-file /Users/runner/work/pangguai-ios/pangguai-ios/build/Build/Intermediates.noindex/Pangguai.build/Release-iphoneos/Pangguai.build/Pangguai-all-target-headers.hmap
+2026-11-17T07:28:07.2009770Z 
+2026-11-17T07:28:07.2052550Z WriteAuxiliaryFile /Users/runner/work/pangguai-ios/pangguai-ios/build/Build/Intermediates.noindex/Pangguai.build/Release-iphoneos/Pangguai.build/Pangguai-all-non-framework-target-headers.hmap (in target 'Pangguai' from project 'Pangguai')
+2026-11-17T07:28:07.2076750Z     cd /Users/runner/work/pangguai-ios/pangguai-ios
+2026-11-17T07:28:07.2090030Z     write-file /Users/runner/work/pangguai-ios/pangguai-ios/build/Build/Intermediates.noindex/Pangguai.build/Release-iphoneos/Pangguai.build/Pangguai-all-non-framework-target-headers.hmap
+2026-11-17T07:28:07.2933390Z 
+2026-11-17T07:28:07.2939290Z WriteAuxiliaryFile /Users/runner/work/pangguai-ios/pangguai-ios/build/Build/Intermediates.noindex/Pangguai.build/Release-iphoneos/Pangguai.build/Objects-normal/arm64/Pangguai_const_extract_protocols.json (in target 'Pangguai' from project 'Pangguai')
+2026-11-17T07:28:07.2944190Z     cd /Users/runner/work/pangguai-ios/pangguai-ios
+2026-11-17T07:28:07.2948790Z     write-file /Users/runner/work/pangguai-ios/pangguai-ios/build/Build/Intermediates.noindex/Pangguai.build/Release-iphoneos/Pangguai.build/Objects-normal/arm64/Pangguai_const_extract_protocols.json
+2026-11-17T07:28:07.2952720Z 
+2026-11-17T07:28:07.2957000Z WriteAuxiliaryFile /Users/runner/work/pangguai-ios/pangguai-ios/build/Build/Intermediates.noindex/Pangguai.build/Release-iphoneos/Pangguai.build/Objects-normal/arm64/Pangguai.SwiftFileList (in target 'Pangguai' from project 'Pangguai')
+2026-11-17T07:28:07.2963050Z     cd /Users/runner/work/pangguai-ios/pangguai-ios
+2026-11-17T07:28:07.2967540Z     write-file /Users/runner/work/pangguai-ios/pangguai-ios/build/Build/Intermediates.noindex/Pangguai.build/Release-iphoneos/Pangguai.build/Objects-normal/arm64/Pangguai.SwiftFileList
+2026-11-17T07:28:07.2971040Z 
+2026-11-17T07:28:07.2976090Z WriteAuxiliaryFile /Users/runner/work/pangguai-ios/pangguai-ios/build/Build/Intermediates.noindex/Pangguai.build/Release-iphoneos/Pangguai.build/Objects-normal/arm64/Pangguai.SwiftConstValuesFileList (in target 'Pangguai' from project 'Pangguai')
+2026-11-17T07:28:07.2980820Z     cd /Users/runner/work/pangguai-ios/pangguai-ios
+2026-11-17T07:28:07.2984640Z     write-file /Users/runner/work/pangguai-ios/pangguai-ios/build/Build/Intermediates.noindex/Pangguai.build/Release-iphoneos/Pangguai.build/Objects-normal/arm64/Pangguai.SwiftConstValuesFileList
+2026-11-17T07:28:07.2988510Z 
+2026-11-17T07:28:07.2992340Z WriteAuxiliaryFile /Users/runner/work/pangguai-ios/pangguai-ios/build/Build/Intermediates.noindex/Pangguai.build/Release-iphoneos/Pangguai.build/Objects-normal/arm64/Pangguai.LinkFileList (in target 'Pangguai' from project 'Pangguai')
+2026-11-17T07:28:07.2997370Z     cd /Users/runner/work/pangguai-ios/pangguai-ios
+2026-11-17T07:28:07.3001540Z     write-file /Users/runner/work/pangguai-ios/pangguai-ios/build/Build/Intermediates.noindex/Pangguai.build/Release-iphoneos/Pangguai.build/Objects-normal/arm64/Pangguai.LinkFileList
+2026-11-17T07:28:07.3006100Z 
+2026-11-17T07:28:07.3010010Z WriteAuxiliaryFile /Users/runner/work/pangguai-ios/pangguai-ios/build/Build/Intermediates.noindex/Pangguai.build/Release-iphoneos/Pangguai.build/Objects-normal/arm64/Pangguai-OutputFileMap.json (in target 'Pangguai' from project 'Pangguai')
+2026-11-17T07:28:07.3014070Z     cd /Users/runner/work/pangguai-ios/pangguai-ios
+2026-11-17T07:28:07.3017440Z     write-file /Users/runner/work/pangguai-ios/pangguai-ios/build/Build/Intermediates.noindex/Pangguai.build/Release-iphoneos/Pangguai.build/Objects-normal/arm64/Pangguai-OutputFileMap.json
+2026-11-17T07:28:07.3020400Z 
+2026-11-17T07:28:07.3022670Z MkDir /Users/runner/work/pangguai-ios/pangguai-ios/build/Build/Products/Release-iphoneos/Pangguai.app (in target 'Pangguai' from project 'Pangguai')
+2026-11-17T07:28:07.3029470Z     cd /Users/runner/work/pangguai-ios/pangguai-ios
+2026-11-17T07:28:07.3033020Z     /bin/mkdir -p /Users/runner/work/pangguai-ios/pangguai-ios/build/Build/Products/Release-iphoneos/Pangguai.app
+2026-11-17T07:28:07.3176090Z 
+2026-11-17T07:28:07.3179060Z MkDir /Users/runner/work/pangguai-ios/pangguai-ios/build/Build/Intermediates.noindex/Pangguai.build/Release-iphoneos/Pangguai.build/assetcatalog_output/thinned (in target 'Pangguai' from project 'Pangguai')
+2026-11-17T07:28:07.3182550Z     cd /Users/runner/work/pangguai-ios/pangguai-ios
+2026-11-17T07:28:07.3187060Z     /bin/mkdir -p /Users/runner/work/pangguai-ios/pangguai-ios/build/Build/Intermediates.noindex/Pangguai.build/Release-iphoneos/Pangguai.build/assetcatalog_output/thinned
+2026-11-17T07:28:07.3190240Z 
+2026-11-17T07:28:07.3193130Z MkDir /Users/runner/work/pangguai-ios/pangguai-ios/build/Build/Intermediates.noindex/Pangguai.build/Release-iphoneos/Pangguai.build/assetcatalog_output/unthinned (in target 'Pangguai' from project 'Pangguai')
+2026-11-17T07:28:07.3197670Z     cd /Users/runner/work/pangguai-ios/pangguai-ios
+2026-11-17T07:28:07.3323550Z     /bin/mkdir -p /Users/runner/work/pangguai-ios/pangguai-ios/build/Build/Intermediates.noindex/Pangguai.build/Release-iphoneos/Pangguai.build/assetcatalog_output/unthinned
+2026-11-17T07:28:07.3343590Z 
+2026-11-17T07:28:07.3347560Z GenerateAssetSymbols /Users/runner/work/pangguai-ios/pangguai-ios/Sources/Resources/Assets.xcassets (in target 'Pangguai' from project 'Pangguai')
+2026-11-17T07:28:07.3351980Z     cd /Users/runner/work/pangguai-ios/pangguai-ios
+2026-11-17T07:28:07.3375280Z     /Applications/Xcode_16.4.app/Contents/Developer/usr/bin/actool /Users/runner/work/pangguai-ios/pangguai-ios/Sources/Resources/Assets.xcassets --compile /Users/runner/work/pangguai-ios/pangguai-ios/build/Build/Products/Release-iphoneos/Pangguai.app --output-format human-readable-text --notices --warnings --export-dependency-info /Users/runner/work/pangguai-ios/pangguai-ios/build/Build/Intermediates.noindex/Pangguai.build/Release-iphoneos/Pangguai.build/assetcatalog_dependencies --output-partial-info-plist /Users/runner/work/pangguai-ios/pangguai-ios/build/Build/Intermediates.noindex/Pangguai.build/Release-iphoneos/Pangguai.build/assetcatalog_generated_info.plist --app-icon AppIcon --compress-pngs --enable-on-demand-resources YES --development-region en --target-device iphone --target-device ipad --minimum-deployment-target 16.0 --platform iphoneos --bundle-identifier com.pangguai.ios --generate-swift-asset-symbol-extensions NO --generate-swift-asset-symbols /Users/runner/work/pangguai-ios/pangguai-ios/build/Build/Intermediates.noindex/Pangguai.build/Release-iphoneos/Pangguai.build/DerivedSources/GeneratedAssetSymbols.swift --generate-objc-asset-symbols /Users/runner/work/pangguai-ios/pangguai-ios/build/Build/Intermediates.noindex/Pangguai.build/Release-iphoneos/Pangguai.build/DerivedSources/GeneratedAssetSymbols.h --generate-asset-symbol-index /Users/runner/work/pangguai-ios/pangguai-ios/build/Build/Intermediates.noindex/Pangguai.build/Release-iphoneos/Pangguai.build/DerivedSources/GeneratedAssetSymbols-Index.plist
+2026-11-17T07:28:07.3396850Z /* com.apple.actool.compilation-results */
+2026-11-17T07:28:07.3400590Z /Users/runner/work/pangguai-ios/pangguai-ios/build/Build/Intermediates.noindex/Pangguai.build/Release-iphoneos/Pangguai.build/DerivedSources/GeneratedAssetSymbols-Index.plist
+2026-11-17T07:28:07.3407070Z /Users/runner/work/pangguai-ios/pangguai-ios/build/Build/Intermediates.noindex/Pangguai.build/Release-iphoneos/Pangguai.build/DerivedSources/GeneratedAssetSymbols.h
+2026-11-17T07:28:07.3413730Z /Users/runner/work/pangguai-ios/pangguai-ios/build/Build/Intermediates.noindex/Pangguai.build/Release-iphoneos/Pangguai.build/DerivedSources/GeneratedAssetSymbols.swift
+2026-11-17T07:28:07.3417010Z 
+2026-11-17T07:28:07.3417680Z 
+2026-11-17T07:28:07.3421120Z CompileAssetCatalogVariant thinned /Users/runner/work/pangguai-ios/pangguai-ios/build/Build/Products/Release-iphoneos/Pangguai.app /Users/runner/work/pangguai-ios/pangguai-ios/Sources/Resources/Assets.xcassets (in target 'Pangguai' from project 'Pangguai')
+2026-11-17T07:28:07.3426180Z     cd /Users/runner/work/pangguai-ios/pangguai-ios
+2026-11-17T07:28:07.3439660Z     /Applications/Xcode_16.4.app/Contents/Developer/usr/bin/actool /Users/runner/work/pangguai-ios/pangguai-ios/Sources/Resources/Assets.xcassets --compile /Users/runner/work/pangguai-ios/pangguai-ios/build/Build/Intermediates.noindex/Pangguai.build/Release-iphoneos/Pangguai.build/assetcatalog_output/thinned --output-format human-readable-text --notices --warnings --export-dependency-info /Users/runner/work/pangguai-ios/pangguai-ios/build/Build/Intermediates.noindex/Pangguai.build/Release-iphoneos/Pangguai.build/assetcatalog_dependencies_thinned --output-partial-info-plist /Users/runner/work/pangguai-ios/pangguai-ios/build/Build/Intermediates.noindex/Pangguai.build/Release-iphoneos/Pangguai.build/assetcatalog_generated_info.plist_thinned --app-icon AppIcon --compress-pngs --enable-on-demand-resources YES --development-region en --target-device iphone --target-device ipad --minimum-deployment-target 16.0 --platform iphoneos
+2026-11-17T07:28:27.3305140Z 
+2026-11-17T07:28:27.3321820Z SwiftDriver Pangguai normal arm64 com.apple.xcode.tools.swift.compiler (in target 'Pangguai' from project 'Pangguai')
+2026-11-17T07:28:27.3354180Z     cd /Users/runner/work/pangguai-ios/pangguai-ios
+2026-11-17T07:28:27.3454460Z     builtin-SwiftDriver -- /Applications/Xcode_16.4.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc -module-name Pangguai -O -whole-module-optimization -enforce-exclusivity\=checked @/Users/runner/work/pangguai-ios/pangguai-ios/build/Build/Intermediates.noindex/Pangguai.build/Release-iphoneos/Pangguai.build/Objects-normal/arm64/Pangguai.SwiftFileList -enable-bare-slash-regex -enable-experimental-feature DebugDescriptionMacro -sdk /Applications/Xcode_16.4.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS18.5.sdk -target arm64-apple-ios16.0 -g -module-cache-path /Users/runner/work/pangguai-ios/pangguai-ios/build/ModuleCache.noindex -Xfrontend -serialize-debugging-options -swift-version 5 -I /Users/runner/work/pangguai-ios/pangguai-ios/build/Build/Products/Release-iphoneos -F /Users/runner/work/pangguai-ios/pangguai-ios/build/Build/Products/Release-iphoneos -F sdk -c -num-threads 4 -Xcc -ivfsstatcache -Xcc /Users/runner/work/pangguai-ios/pangguai-ios/build/SDKStatCaches.noindex/iphoneos18.5-22F76-a529daf784b3616c7c04a36aeb7f5c05.sdkstatcache -output-file-map /Users/runner/work/pangguai-ios/pangguai-ios/build/Build/Intermediates.noindex/Pangguai.build/Release-iphoneos/Pangguai.build/Objects-normal/arm64/Pangguai-OutputFileMap.json -use-frontend-parseable-output -save-temps -no-color-diagnostics -serialize-diagnostics -emit-dependencies -emit-module -emit-module-path /Users/runner/work/pangguai-ios/pangguai-ios/build/Build/Intermediates.noindex/Pangguai.build/Release-iphoneos/Pangguai.build/Objects-normal/arm64/Pangguai.swiftmodule -validate-clang-modules-once -clang-build-session-file /Users/runner/work/pangguai-ios/pangguai-ios/build/ModuleCache.noindex/Session.modulevalidation -Xcc -I/Users/runner/work/pangguai-ios/pangguai-ios/build/Build/Intermediates.noindex/Pangguai.build/Release-iphoneos/Pangguai.build/swift-overrides.hmap -emit-const-values -Xfrontend -const-gather-protocols-file -Xfrontend /Users/runner/work/pangguai-ios/pangguai-ios/build/Build/Intermediates.noindex/Pangguai.build/Release-iphoneos/Pangguai.build/Objects-normal/arm64/Pangguai_const_extract_protocols.json -Xcc -iquote -Xcc /Users/runner/work/pangguai-ios/pangguai-ios/build/Build/Intermediates.noindex/Pangguai.build/Release-iphoneos/Pangguai.build/Pangguai-generated-files.hmap -Xcc -I/Users/runner/work/pangguai-ios/pangguai-ios/build/Build/Intermediates.noindex/Pangguai.build/Release-iphoneos/Pangguai.build/Pangguai-own-target-headers.hmap -Xcc -I/Users/runner/work/pangguai-ios/pangguai-ios/build/Build/Intermediates.noindex/Pangguai.build/Release-iphoneos/Pangguai.build/Pangguai-all-target-headers.hmap -Xcc -iquote -Xcc /Users/runner/work/pangguai-ios/pangguai-ios/build/Build/Intermediates.noindex/Pangguai.build/Release-iphoneos/Pangguai.build/Pangguai-project-headers.hmap -Xcc -I/Users/runner/work/pangguai-ios/pangguai-ios/build/Build/Products/Release-iphoneos/include -Xcc -I/Users/runner/work/pangguai-ios/pangguai-ios/build/Build/Intermediates.noindex/Pangguai.build/Release-iphoneos/Pangguai.build/DerivedSources-normal/arm64 -Xcc -I/Users/runner/work/pangguai-ios/pangguai-ios/build/Build/Intermediates.noindex/Pangguai.build/Release-iphoneos/Pangguai.build/DerivedSources/arm64 -Xcc -I/Users/runner/work/pangguai-ios/pangguai-ios/build/Build/Intermediates.noindex/Pangguai.build/Release-iphoneos/Pangguai.build/DerivedSources -emit-objc-header -emit-objc-header-path /Users/runner/work/pangguai-ios/pangguai-ios/build/Build/Intermediates.noindex/Pangguai.build/Release-iphoneos/Pangguai.build/Objects-normal/arm64/Pangguai-Swift.h -working-directory /Users/runner/work/pangguai-ios/pangguai-ios -no-emit-module-separately-wmo
+2026-11-17T07:28:27.3513860Z 
+2026-11-17T07:28:27.3533590Z SwiftDriver\ Compilation Pangguai normal arm64 com.apple.xcode.tools.swift.compiler (in target 'Pangguai' from project 'Pangguai')
+2026-11-17T07:28:27.3541060Z     cd /Users/runner/work/pangguai-ios/pangguai-ios
+2026-11-17T07:28:27.3591550Z     builtin-Swift-Compilation -- /Applications/Xcode_16.4.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc -module-name Pangguai -O -whole-module-optimization -enforce-exclusivity\=checked @/Users/runner/work/pangguai-ios/pangguai-ios/build/Build/Intermediates.noindex/Pangguai.build/Release-iphoneos/Pangguai.build/Objects-normal/arm64/Pangguai.SwiftFileList -enable-bare-slash-regex -enable-experimental-feature DebugDescriptionMacro -sdk /Applications/Xcode_16.4.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS18.5.sdk -target arm64-apple-ios16.0 -g -module-cache-path /Users/runner/work/pangguai-ios/pangguai-ios/build/ModuleCache.noindex -Xfrontend -serialize-debugging-options -swift-version 5 -I /Users/runner/work/pangguai-ios/pangguai-ios/build/Build/Products/Release-iphoneos -F /Users/runner/work/pangguai-ios/pangguai-ios/build/Build/Products/Release-iphoneos -F sdk -c -num-threads 4 -Xcc -ivfsstatcache -Xcc /Users/runner/work/pangguai-ios/pangguai-ios/build/SDKStatCaches.noindex/iphoneos18.5-22F76-a529daf784b3616c7c04a36aeb7f5c05.sdkstatcache -output-file-map /Users/runner/work/pangguai-ios/pangguai-ios/build/Build/Intermediates.noindex/Pangguai.build/Release-iphoneos/Pangguai.build/Objects-normal/arm64/Pangguai-OutputFileMap.json -use-frontend-parseable-output -save-temps -no-color-diagnostics -serialize-diagnostics -emit-dependencies -emit-module -emit-module-path /Users/runner/work/pangguai-ios/pangguai-ios/build/Build/Intermediates.noindex/Pangguai.build/Release-iphoneos/Pangguai.build/Objects-normal/arm64/Pangguai.swiftmodule -validate-clang-modules-once -clang-build-session-file /Users/runner/work/pangguai-ios/pangguai-ios/build/ModuleCache.noindex/Session.modulevalidation -Xcc -I/Users/runner/work/pangguai-ios/pangguai-ios/build/Build/Intermediates.noindex/Pangguai.build/Release-iphoneos/Pangguai.build/swift-overrides.hmap -emit-const-values -Xfrontend -const-gather-protocols-file -Xfrontend /Users/runner/work/pangguai-ios/pangguai-ios/build/Build/Intermediates.noindex/Pangguai.build/Release-iphoneos/Pangguai.build/Objects-normal/arm64/Pangguai_const_extract_protocols.json -Xcc -iquote -Xcc /Users/runner/work/pangguai-ios/pangguai-ios/build/Build/Intermediates.noindex/Pangguai.build/Release-iphoneos/Pangguai.build/Pangguai-generated-files.hmap -Xcc -I/Users/runner/work/pangguai-ios/pangguai-ios/build/Build/Intermediates.noindex/Pangguai.build/Release-iphoneos/Pangguai.build/Pangguai-own-target-headers.hmap -Xcc -I/Users/runner/work/pangguai-ios/pangguai-ios/build/Build/Intermediates.noindex/Pangguai.build/Release-iphoneos/Pangguai.build/Pangguai-all-target-headers.hmap -Xcc -iquote -Xcc /Users/runner/work/pangguai-ios/pangguai-ios/build/Build/Intermediates.noindex/Pangguai.build/Release-iphoneos/Pangguai.build/Pangguai-project-headers.hmap -Xcc -I/Users/runner/work/pangguai-ios/pangguai-ios/build/Build/Products/Release-iphoneos/include -Xcc -I/Users/runner/work/pangguai-ios/pangguai-ios/build/Build/Intermediates.noindex/Pangguai.build/Release-iphoneos/Pangguai.build/DerivedSources-normal/arm64 -Xcc -I/Users/runner/work/pangguai-ios/pangguai-ios/build/Build/Intermediates.noindex/Pangguai.build/Release-iphoneos/Pangguai.build/DerivedSources/arm64 -Xcc -I/Users/runner/work/pangguai-ios/pangguai-ios/build/Build/Intermediates.noindex/Pangguai.build/Release-iphoneos/Pangguai.build/DerivedSources -emit-objc-header -emit-objc-header-path /Users/runner/work/pangguai-ios/pangguai-ios/build/Build/Intermediates.noindex/Pangguai.build/Release-iphoneos/Pangguai.build/Objects-normal/arm64/Pangguai-Swift.h -working-directory /Users/runner/work/pangguai-ios/pangguai-ios -no-emit-module-separately-wmo
+2026-11-17T07:28:27.3645230Z 
+2026-11-17T07:28:27.3670840Z SwiftCompile normal arm64 Compiling\ AppShell.swift,\ AppStore.swift,\ Crypto.swift,\ FlatTheme.swift,\ Keychain.swift,\ LaundryView.swift,\ LogView.swift,\ LoginSheet.swift,\ Models.swift,\ OrdersView.swift,\ PGClient.swift,\ PGProtocol.swift,\ PangguaiApp.swift,\ PaySheet.swift,\ QRCodeView.swift,\ RechargeView.swift,\ ScanSheet.swift,\ SettingsView.swift,\ WeChatPay.swift,\ GeneratedAssetSymbols.swift /Users/runner/work/pangguai-ios/pangguai-ios/Sources/Views/AppShell.swift /Users/runner/work/pangguai-ios/pangguai-ios/Sources/Core/AppStore.swift /Users/runner/work/pangguai-ios/pangguai-ios/Sources/Core/Crypto.swift /Users/runner/work/pangguai-ios/pangguai-ios/Sources/Views/FlatTheme.swift /Users/runner/work/pangguai-ios/pangguai-ios/Sources/Core/Keychain.swift /Users/runner/work/pangguai-ios/pangguai-ios/Sources/Views/LaundryView.swift /Users/runner/work/pangguai-ios/pangguai-ios/Sources/Views/LogView.swift /Users/runner/work/pangguai-ios/pangguai-ios/Sources/Views/LoginSheet.swift /Users/runner/work/pangguai-ios/pangguai-ios/Sources/Core/Models.swift /Users/runner/work/pangguai-ios/pangguai-ios/Sources/Views/OrdersView.swift /Users/runner/work/pangguai-ios/pangguai-ios/Sources/Core/PGClient.swift /Users/runner/work/pangguai-ios/pangguai-ios/Sources/Core/PGProtocol.swift /Users/runner/work/pangguai-ios/pangguai-ios/Sources/App/PangguaiApp.swift /Users/runner/work/pangguai-ios/pangguai-ios/Sources/Views/PaySheet.swift /Users/runner/work/pangguai-ios/pangguai-ios/Sources/Views/QRCodeView.swift /Users/runner/work/pangguai-ios/pangguai-ios/Sources/Views/RechargeView.swift /Users/runner/work/pangguai-ios/pangguai-ios/Sources/Views/ScanSheet.swift /Users/runner/work/pangguai-ios/pangguai-ios/Sources/Views/SettingsView.swift /Users/runner/work/pangguai-ios/pangguai-ios/Sources/Core/WeChatPay.swift /Users/runner/work/pangguai-ios/pangguai-ios/build/Build/Intermediates.noindex/Pangguai.build/Release-iphoneos/Pangguai.build/DerivedSources/GeneratedAssetSymbols.swift (in target 'Pangguai' from project 'Pangguai')
+2026-11-17T07:28:27.3698830Z Failed frontend command:
+2026-11-17T07:28:27.3851260Z /Applications/Xcode_16.4.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swift-frontend -frontend -c /Users/runner/work/pangguai-ios/pangguai-ios/Sources/Views/AppShell.swift /Users/runner/work/pangguai-ios/pangguai-ios/Sources/Core/AppStore.swift /Users/runner/work/pangguai-ios/pangguai-ios/Sources/Core/Crypto.swift /Users/runner/work/pangguai-ios/pangguai-ios/Sources/Views/FlatTheme.swift /Users/runner/work/pangguai-ios/pangguai-ios/Sources/Core/Keychain.swift /Users/runner/work/pangguai-ios/pangguai-ios/Sources/Views/LaundryView.swift /Users/runner/work/pangguai-ios/pangguai-ios/Sources/Views/LogView.swift /Users/runner/work/pangguai-ios/pangguai-ios/Sources/Views/LoginSheet.swift /Users/runner/work/pangguai-ios/pangguai-ios/Sources/Core/Models.swift /Users/runner/work/pangguai-ios/pangguai-ios/Sources/Views/OrdersView.swift /Users/runner/work/pangguai-ios/pangguai-ios/Sources/Core/PGClient.swift /Users/runner/work/pangguai-ios/pangguai-ios/Sources/Core/PGProtocol.swift /Users/runner/work/pangguai-ios/pangguai-ios/Sources/App/PangguaiApp.swift /Users/runner/work/pangguai-ios/pangguai-ios/Sources/Views/PaySheet.swift /Users/runner/work/pangguai-ios/pangguai-ios/Sources/Views/QRCodeView.swift /Users/runner/work/pangguai-ios/pangguai-ios/Sources/Views/RechargeView.swift /Users/runner/work/pangguai-ios/pangguai-ios/Sources/Views/ScanSheet.swift /Users/runner/work/pangguai-ios/pangguai-ios/Sources/Views/SettingsView.swift /Users/runner/work/pangguai-ios/pangguai-ios/Sources/Core/WeChatPay.swift /Users/runner/work/pangguai-ios/pangguai-ios/build/Build/Intermediates.noindex/Pangguai.build/Release-iphoneos/Pangguai.build/DerivedSources/GeneratedAssetSymbols.swift -supplementary-output-file-map /Users/runner/work/pangguai-ios/pangguai-ios/build/Build/Intermediates.noindex/Pangguai.build/Release-iphoneos/Pangguai.build/Objects-normal/arm64/supplementaryOutputs-1 -target arm64-apple-ios16.0 -Xllvm -aarch64-use-tbi -enable-objc-interop -stack-check -sdk /Applications/Xcode_16.4.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS18.5.sdk -I /Users/runner/work/pangguai-ios/pangguai-ios/build/Build/Products/Release-iphoneos -F /Users/runner/work/pangguai-ios/pangguai-ios/build/Build/Products/Release-iphoneos -F /Users/runner/work/pangguai-ios/pangguai-ios/sdk -no-color-diagnostics -g -debug-info-format\=dwarf -dwarf-version\=4 -module-cache-path /Users/runner/work/pangguai-ios/pangguai-ios/build/ModuleCache.noindex -swift-version 5 -enforce-exclusivity\=checked -O -serialize-debugging-options -const-gather-protocols-file /Users/runner/work/pangguai-ios/pangguai-ios/build/Build/Intermediates.noindex/Pangguai.build/Release-iphoneos/Pangguai.build/Objects-normal/arm64/Pangguai_const_extract_protocols.json -enable-experimental-feature DebugDescriptionMacro -enable-bare-slash-regex -empty-abi-descriptor -validate-clang-modules-once -clang-build-session-file /Users/runner/work/pangguai-ios/pangguai-ios/build/ModuleCache.noindex/Session.modulevalidation -Xcc -working-directory -Xcc /Users/runner/work/pangguai-ios/pangguai-ios -resource-dir /Applications/Xcode_16.4.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift -file-compilation-dir /Users/runner/work/pangguai-ios/pangguai-ios -Xcc -ivfsstatcache -Xcc /Users/runner/work/pangguai-ios/pangguai-ios/build/SDKStatCaches.noindex/iphoneos18.5-22F76-a529daf784b3616c7c04a36aeb7f5c05.sdkstatcache -Xcc -I/Users/runner/work/pangguai-ios/pangguai-ios/build/Build/Intermediates.noindex/Pangguai.build/Release-iphoneos/Pangguai.build/swift-overrides.hmap -Xcc -iquote -Xcc /Users/runner/work/pangguai-ios/pangguai-ios/build/Build/Intermediates.noindex/Pangguai.build/Release-iphoneos/Pangguai.build/Pangguai-generated-files.hmap -Xcc -I/Users/runner/work/pangguai-ios/pangguai-ios/build/Build/Intermediates.noindex/Pangguai.build/Release-iphoneos/Pangguai.build/Pangguai-own-target-headers.hmap -Xcc -I/Users/runner/work/pangguai-ios/pangguai-ios/build/Build/Intermediates.noindex/Pangguai.build/Release-iphoneos/Pangguai.build/Pangguai-all-target-headers.hmap -Xcc -iquote -Xcc /Users/runner/work/pangguai-ios/pangguai-ios/build/Build/Intermediates.noindex/Pangguai.build/Release-iphoneos/Pangguai.build/Pangguai-project-headers.hmap -Xcc -I/Users/runner/work/pangguai-ios/pangguai-ios/build/Build/Products/Release-iphoneos/include -Xcc -I/Users/runner/work/pangguai-ios/pangguai-ios/build/Build/Intermediates.noindex/Pangguai.build/Release-iphoneos/Pangguai.build/DerivedSources-normal/arm64 -Xcc -I/Users/runner/work/pangguai-ios/pangguai-ios/build/Build/Intermediates.noindex/Pangguai.build/Release-iphoneos/Pangguai.build/DerivedSources/arm64 -Xcc -I/Users/runner/work/pangguai-ios/pangguai-ios/build/Build/Intermediates.noindex/Pangguai.build/Release-iphoneos/Pangguai.build/DerivedSources -module-name Pangguai -frontend-parseable-output -disable-clang-spi -target-sdk-version 18.5 -target-sdk-name iphoneos18.5 -external-plugin-path /Applications/Xcode_16.4.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/usr/lib/swift/host/plugins\#/Applications/Xcode_16.4.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/usr/bin/swift-plugin-server -external-plugin-path /Applications/Xcode_16.4.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/usr/local/lib/swift/host/plugins\#/Applications/Xcode_16.4.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/usr/bin/swift-plugin-server -in-process-plugin-server-path /Applications/Xcode_16.4.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/host/libSwiftInProcPluginServer.dylib -plugin-path /Applications/Xcode_16.4.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/host/plugins -plugin-path /Applications/Xcode_16.4.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/local/lib/swift/host/plugins -enable-default-cmo -num-threads 4 -o /Users/runner/work/pangguai-ios/pangguai-ios/build/Build/Intermediates.noindex/Pangguai.build/Release-iphoneos/Pangguai.build/Objects-normal/arm64/AppShell.o -o /Users/runner/work/pangguai-ios/pangguai-ios/build/Build/Intermediates.noindex/Pangguai.build/Release-iphoneos/Pangguai.build/Objects-normal/arm64/AppStore.o -o /Users/runner/work/pangguai-ios/pangguai-ios/build/Build/Intermediates.noindex/Pangguai.build/Release-iphoneos/Pangguai.build/Objects-normal/arm64/Crypto.o -o /Users/runner/work/pangguai-ios/pangguai-ios/build/Build/Intermediates.noindex/Pangguai.build/Release-iphoneos/Pangguai.build/Objects-normal/arm64/FlatTheme.o -o /Users/runner/work/pangguai-ios/pangguai-ios/build/Build/Intermediates.noindex/Pangguai.build/Release-iphoneos/Pangguai.build/Objects-normal/arm64/Keychain.o -o /Users/runner/work/pangguai-ios/pangguai-ios/build/Build/Intermediates.noindex/Pangguai.build/Release-iphoneos/Pangguai.build/Objects-normal/arm64/LaundryView.o -o /Users/runner/work/pangguai-ios/pangguai-ios/build/Build/Intermediates.noindex/Pangguai.build/Release-iphoneos/Pangguai.build/Objects-normal/arm64/LogView.o -o /Users/runner/work/pangguai-ios/pangguai-ios/build/Build/Intermediates.noindex/Pangguai.build/Release-iphoneos/Pangguai.build/Objects-normal/arm64/LoginSheet.o -o /Users/runner/work/pangguai-ios/pangguai-ios/build/Build/Intermediates.noindex/Pangguai.build/Release-iphoneos/Pangguai.build/Objects-normal/arm64/Models.o -o /Users/runner/work/pangguai-ios/pangguai-ios/build/Build/Intermediates.noindex/Pangguai.build/Release-iphoneos/Pangguai.build/Objects-normal/arm64/OrdersView.o -o /Users/runner/work/pangguai-ios/pangguai-ios/build/Build/Intermediates.noindex/Pangguai.build/Release-iphoneos/Pangguai.build/Objects-normal/arm64/PGClient.o -o /Users/runner/work/pangguai-ios/pangguai-ios/build/Build/Intermediates.noindex/Pangguai.build/Release-iphoneos/Pangguai.build/Objects-normal/arm64/PGProtocol.o -o /Users/runner/work/pangguai-ios/pangguai-ios/build/Build/Intermediates.noindex/Pangguai.build/Release-iphoneos/Pangguai.build/Objects-normal/arm64/PangguaiApp.o -o /Users/runner/work/pangguai-ios/pangguai-ios/build/Build/Intermediates.noindex/Pangguai.build/Release-iphoneos/Pangguai.build/Objects-normal/arm64/PaySheet.o -o /Users/runner/work/pangguai-ios/pangguai-ios/build/Build/Intermediates.noindex/Pangguai.build/Release-iphoneos/Pangguai.build/Objects-normal/arm64/QRCodeView.o -o /Users/runner/work/pangguai-ios/pangguai-ios/build/Build/Intermediates.noindex/Pangguai.build/Release-iphoneos/Pangguai.build/Objects-normal/arm64/RechargeView.o -o /Users/runner/work/pangguai-ios/pangguai-ios/build/Build/Intermediates.noindex/Pangguai.build/Release-iphoneos/Pangguai.build/Objects-normal/arm64/ScanSheet.o -o /Users/runner/work/pangguai-ios/pangguai-ios/build/Build/Intermediates.noindex/Pangguai.build/Release-iphoneos/Pangguai.build/Objects-normal/arm64/SettingsView.o -o /Users/runner/work/pangguai-ios/pangguai-ios/build/Build/Intermediates.noindex/Pangguai.build/Release-iphoneos/Pangguai.build/Objects-normal/arm64/WeChatPay.o -o /Users/runner/work/pangguai-ios/pangguai-ios/build/Build/Intermediates.noindex/Pangguai.build/Release-iphoneos/Pangguai.build/Objects-normal/arm64/GeneratedAssetSymbols.o -index-unit-output-path /Pangguai.build/Release-iphoneos/Pangguai.build/Objects-normal/arm64/AppShell.o -index-unit-output-path /Pangguai.build/Release-iphoneos/Pangguai.build/Objects-normal/arm64/AppStore.o -index-unit-output-path /Pangguai.build/Release-iphoneos/Pangguai.build/Objects-normal/arm64/Crypto.o -index-unit-output-path /Pangguai.build/Release-iphoneos/Pangguai.build/Objects-normal/arm64/FlatTheme.o -index-unit-output-path /Pangguai.build/Release-iphoneos/Pangguai.build/Objects-normal/arm64/Keychain.o -index-unit-output-path /Pangguai.build/Release-iphoneos/Pangguai.build/Objects-normal/arm64/LaundryView.o -index-unit-output-path /Pangguai.build/Release-iphoneos/Pangguai.build/Objects-normal/arm64/LogView.o -index-unit-output-path /Pangguai.build/Release-iphoneos/Pangguai.build/Objects-normal/arm64/LoginSheet.o -index-unit-output-path /Pangguai.build/Release-iphoneos/Pangguai.build/Objects-normal/arm64/Models.o -index-unit-output-path /Pangguai.build/Release-iphoneos/Pangguai.build/Objects-normal/arm64/OrdersView.o -index-unit-output-path /Pangguai.build/Release-iphoneos/Pangguai.build/Objects-normal/arm64/PGClient.o -index-unit-output-path /Pangguai.build/Release-iphoneos/Pangguai.build/Objects-normal/arm64/PGProtocol.o -index-unit-output-path /Pangguai.build/Release-iphoneos/Pangguai.build/Objects-normal/arm64/PangguaiApp.o -index-unit-output-path /Pangguai.build/Release-iphoneos/Pangguai.build/Objects-normal/arm64/PaySheet.o -index-unit-output-path /Pangguai.build/Release-iphoneos/Pangguai.build/Objects-normal/arm64/QRCodeView.o -index-unit-output-path /Pangguai.build/Release-iphoneos/Pangguai.build/Objects-normal/arm64/RechargeView.o -index-unit-output-path /Pangguai.build/Release-iphoneos/Pangguai.build/Objects-normal/arm64/ScanSheet.o -index-unit-output-path /Pangguai.build/Release-iphoneos/Pangguai.build/Objects-normal/arm64/SettingsView.o -index-unit-output-path /Pangguai.build/Release-iphoneos/Pangguai.build/Objects-normal/arm64/WeChatPay.o -index-unit-output-path /Pangguai.build/Release-iphoneos/Pangguai.build/Objects-normal/arm64/GeneratedAssetSymbols.o
+2026-11-17T07:28:27.3978330Z 
+2026-11-17T07:28:27.3979080Z CompileSwift normal arm64 (in target 'Pangguai' from project 'Pangguai')
+2026-11-17T07:28:27.3980600Z     cd /Users/runner/work/pangguai-ios/pangguai-ios
+2026-11-17T07:28:27.3981660Z     
+2026-11-17T07:28:27.3983740Z /Users/runner/work/pangguai-ios/pangguai-ios/Sources/Core/WeChatPay.swift:93:15: error: 'sendReq(_:completion:)' has been renamed to 'send(_:completion:)'
+2026-11-17T07:28:27.3986200Z         WXApi.sendReq(req) { ok in
+2026-11-17T07:28:27.3987100Z               ^~~~~~~
+2026-11-17T07:28:27.3987810Z               send
+2026-11-17T07:28:27.3989090Z WechatOpenSDK.WXApi.sendReq:3:19: note: 'sendReq(_:completion:)' was obsoleted in Swift 3
+2026-11-17T07:28:27.3991090Z   open class func sendReq(_ req: BaseReq, completion: ((Bool) -> Void)? = nil)}
+2026-11-17T07:28:27.3992430Z                   ^
+2026-11-17T07:28:27.3992850Z 
+2026-11-17T07:28:27.3994560Z note: Disabling previews because SWIFT_VERSION is set and SWIFT_OPTIMIZATION_LEVEL=-O, expected -Onone (in target 'Pangguai' from project 'Pangguai')
+2026-11-17T07:28:27.3996960Z ** BUILD FAILED **
+2026-11-17T07:28:27.3997440Z 
+2026-11-17T07:28:27.3997450Z 
+2026-11-17T07:28:27.3997790Z The following build commands failed:
+2026-11-17T07:28:27.4024120Z 	SwiftCompile normal arm64 Compiling\ AppShell.swift,\ AppStore.swift,\ Crypto.swift,\ FlatTheme.swift,\ Keychain.swift,\ LaundryView.swift,\ LogView.swift,\ LoginSheet.swift,\ Models.swift,\ OrdersView.swift,\ PGClient.swift,\ PGProtocol.swift,\ PangguaiApp.swift,\ PaySheet.swift,\ QRCodeView.swift,\ RechargeView.swift,\ ScanSheet.swift,\ SettingsView.swift,\ WeChatPay.swift,\ GeneratedAssetSymbols.swift /Users/runner/work/pangguai-ios/pangguai-ios/Sources/Views/AppShell.swift /Users/runner/work/pangguai-ios/pangguai-ios/Sources/Core/AppStore.swift /Users/runner/work/pangguai-ios/pangguai-ios/Sources/Core/Crypto.swift /Users/runner/work/pangguai-ios/pangguai-ios/Sources/Views/FlatTheme.swift /Users/runner/work/pangguai-ios/pangguai-ios/Sources/Core/Keychain.swift /Users/runner/work/pangguai-ios/pangguai-ios/Sources/Views/LaundryView.swift /Users/runner/work/pangguai-ios/pangguai-ios/Sources/Views/LogView.swift /Users/runner/work/pangguai-ios/pangguai-ios/Sources/Views/LoginSheet.swift /Users/runner/work/pangguai-ios/pangguai-ios/Sources/Core/Models.swift /Users/runner/work/pangguai-ios/pangguai-ios/Sources/Views/OrdersView.swift /Users/runner/work/pangguai-ios/pangguai-ios/Sources/Core/PGClient.swift /Users/runner/work/pangguai-ios/pangguai-ios/Sources/Core/PGProtocol.swift /Users/runner/work/pangguai-ios/pangguai-ios/Sources/App/PangguaiApp.swift /Users/runner/work/pangguai-ios/pangguai-ios/Sources/Views/PaySheet.swift /Users/runner/work/pangguai-ios/pangguai-ios/Sources/Views/QRCodeView.swift /Users/runner/work/pangguai-ios/pangguai-ios/Sources/Views/RechargeView.swift /Users/runner/work/pangguai-ios/pangguai-ios/Sources/Views/ScanSheet.swift /Users/runner/work/pangguai-ios/pangguai-ios/Sources/Views/SettingsView.swift /Users/runner/work/pangguai-ios/pangguai-ios/Sources/Core/WeChatPay.swift /Users/runner/work/pangguai-ios/pangguai-ios/build/Build/Intermediates.noindex/Pangguai.build/Release-iphoneos/Pangguai.build/DerivedSources/GeneratedAssetSymbols.swift (in target 'Pangguai' from project 'Pangguai')
+2026-11-17T07:28:27.4046780Z 	CompileSwift normal arm64 (in target 'Pangguai' from project 'Pangguai')
+2026-11-17T07:28:27.4048060Z 	Building project Pangguai with scheme Pangguai and configuration Release
+2026-11-17T07:28:27.4049050Z (3 failures)
+2026-11-17T07:28:27.4072080Z ##[error]Process completed with exit code 65.
+2026-11-17T07:28:27.4273420Z ##[group]Run actions/upload-artifact@v4
+2026-11-17T07:28:27.4274490Z with:
+2026-11-17T07:28:27.4274900Z   name: xcodebuild-log
+2026-11-17T07:28:27.4275360Z   path: build/xcodebuild.log
+2026-11-17T07:28:27.4275890Z   if-no-files-found: warn
+2026-11-17T07:28:27.4276450Z   compression-level: 6
+2026-11-17T07:28:27.4277120Z   overwrite: false
+2026-11-17T07:28:27.4277570Z   include-hidden-files: false
+2026-11-17T07:28:27.4278080Z ##[endgroup]
+2026-11-17T07:28:28.1744120Z (node:4289) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+2026-11-17T07:28:28.1746850Z (Use `node --trace-deprecation ...` to show where the warning was created)
+2026-11-17T07:28:28.1818270Z With the provided path, there will be 1 file uploaded
+2026-11-17T07:28:28.1822080Z Artifact name is valid!
+2026-11-17T07:28:28.1832690Z Root directory input is valid!
+2026-11-17T07:28:28.4767310Z Beginning upload of artifact content to blob storage
+2026-11-17T07:28:28.5275330Z (node:4289) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+2026-11-17T07:28:28.7122850Z Uploaded bytes 3734
+2026-11-17T07:28:28.7563340Z Finished uploading artifact content to blob storage!
+2026-11-17T07:28:28.7565880Z SHA256 digest of uploaded artifact zip is ad66e1d889c56b7676ad7c236d4f56689f34ba86c555771ce3d3dc4a441b304e
+2026-11-17T07:28:28.7569090Z Finalizing artifact upload
+2026-11-17T07:28:29.1290020Z Artifact xcodebuild-log.zip successfully finalized. Artifact ID 14307714483
+2026-11-17T07:28:29.1317270Z Artifact xcodebuild-log has been successfully uploaded! Final size is 3734 bytes. Artifact ID is 14307714483
+2026-11-17T07:28:29.1325040Z Artifact download URL: https://github.com/233576/pangguai-ios/actions/runs/44038841660/artifacts/14307714483
+2026-11-17T07:28:29.1670390Z Post job cleanup.
+2026-11-17T07:28:29.3502200Z [command]/usr/local/bin/git version
+2026-11-17T07:28:29.3999220Z git version 2.55.0
+2026-11-17T07:28:29.4138340Z Copying '/Users/runner/.gitconfig' to '/Users/runner/work/_temp/41b22767-e87b-448b-826d-2b2377bf31d7/.gitconfig'
+2026-11-17T07:28:29.4141600Z Temporarily overriding HOME='/Users/runner/work/_temp/41b22767-e87b-448b-826d-2b2377bf31d7' before making global git config changes
+2026-11-17T07:28:29.4145140Z Adding repository directory to the temporary git global config as a safe directory
+2026-11-17T07:28:29.4153420Z [command]/usr/local/bin/git config --global --add safe.directory /Users/runner/work/pangguai-ios/pangguai-ios
+2026-11-17T07:28:29.4288710Z [command]/usr/local/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-11-17T07:28:29.4522520Z [command]/usr/local/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-11-17T07:28:29.6087030Z [command]/usr/local/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-11-17T07:28:29.6181660Z http.https://github.com/.extraheader
+2026-11-17T07:28:29.6198220Z [command]/usr/local/bin/git config --local --unset-all http.https://github.com/.extraheader
+2026-11-17T07:28:29.6312590Z [command]/usr/local/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-11-17T07:28:29.7951090Z [command]/usr/local/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-11-17T07:28:29.8096310Z [command]/usr/local/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-11-17T07:28:30.0106160Z Cleaning up orphan processes
+2026-11-17T07:28:30.1691830Z Terminate orphan process: pid (4006) (ibtoold)
+2026-11-17T07:28:30.1934980Z Terminate orphan process: pid (3845) (ibtoold)
+2026-11-17T07:28:30.4963150Z ##[warning]Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/checkout@v4, actions/upload-artifact@v4. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
