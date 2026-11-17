@@ -107,7 +107,7 @@ final class PGClient {
             response.json = ["code": -100, "msg": "请先登录后再扫码"]
             return response
         }
-        return await post("/goods/scan/v2", [("NQT", code)])
+        return await post("/goods/scan/v2", PGProtocol.scanFields(from: code))
     }
 
     func deviceDetail(goodsId: String) async -> PGResponse {
