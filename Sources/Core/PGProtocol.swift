@@ -162,6 +162,15 @@ enum PGProtocol {
         }
         return qrContent(for: param)
     }
+
+    /// 打开对应 App 的「扫一扫」页面（用户再从相册选刚保存的二维码）。
+    /// 这条路比直接调起收银台稳得多：收银台入口各版本时常被废弃，扫一扫一直是受支持的入口。
+    static func qrScanScheme(payType: Int) -> URL? {
+        if payType == payTypeWeChat {
+            return URL(string: "weixin://scanqrcode")
+        }
+        return URL(string: "alipays://platformapi/startapp?saId=10000007")
+    }
 }
 
 /// 统一响应包装。code == 0 为成功；2 / 401 表示未登录。
