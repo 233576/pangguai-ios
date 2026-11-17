@@ -245,6 +245,17 @@ struct PendingPayment: Codable, Equatable {
     var isSettled: Bool { prepayParam.isEmpty }
 }
 
+// MARK: - 设备异常提示
+
+/// 官方 App 在订单页会顶一条「设备异常，已暂停 / 请确认洗衣机门是否关紧」。
+/// 服务端不同网点返回的字段名不一致，所以这里用「字段名启发式 + 文案原样透出」的方式，
+/// 宁可少显示，也不伪造文案。
+struct DeviceAlert: Equatable {
+    var title: String
+    var detail: String
+    var isWarning: Bool = true
+}
+
 // MARK: - 支付渠道
 
 /// 服务端 `/pay/ticket/getAvailablePayTypeList` 返回的一项。
