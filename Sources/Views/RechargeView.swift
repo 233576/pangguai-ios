@@ -82,22 +82,31 @@ struct RechargeView: View {
         .preferredColorScheme(.dark)
         .onAppear {
             if shopIdDraft.isEmpty { shopIdDraft = store.device?.shopId ?? "" }
+            Task { await store.refreshBalances() }
         }
-        .onDisappear { Task { await store.refreshProfile() } }
+        .onDisappear {
+            Task {
+                await store.refreshProfile()
+                await store.refreshBalances()
+            }
+        }
     }
 
     private var banner: some View {
-        VStack(alignment: .leading, spacing: 5) {
+        VStack(alignment: .leading, spacing: 6) {
             HStack(spacing: 6) {
                 Image(systemName: "wallet.bifold.fill")
                     .font(.system(size: 12, weight: .semibold))
                     .foregroundStyle(Flat.orange)
-                Text("当前余额 ¥ \(store.user?.balanceText ?? "—")")
+                Text("账号余额 ¥ \(store.user?.balanceText.replacingOccurrences(of: "¥", with: "") ?? "—")")
                     .font(.system(size: 13, weight: .semibold))
                     .foregroundStyle(Flat.textPrimary)
                 Spacer()
                 Button {
-                    Task { await store.refreshProfile() }
+                    Task {
+                        await store.refreshProfile()
+                        await store.refreshBalances()
+                    }
                 } label: {
                     Text("刷新")
                         .font(.system(size: 12, weight: .semibold))
@@ -105,9 +114,22 @@ struct RechargeView: View {
                 }
                 .buttonStyle(.plain)
             }
-            Text("充值是官方页面，付款完成后回来点一下「刷新」余额就会更新。")
+            HStack(spacing: 6) {
+                Text("店铺余额 \(store.shopBalanceText)")
+                    .font(.system(size: 12, weight: .medium))
+                    .foregroundStyle(store.shopBalanceTotal > 0 ? Flat.green : Flat.textTertiary)
+                if !store.balances.isEmpty {
+                    Text("· \(store.device?.orgName ?? store.balances[0].shopNames)")
+                        .font(.system(size: 11))
+                        .foregroundStyle(Flat.textTertiary)
+                        .lineLimit(1)
+                }
+                Spacer()
+            }
+            Text("胖乖的余额分两种：账号余额（通用，官方渠道充）和店铺余额（本页充值，可直接付这台机器）。")
                 .font(.system(size: 11))
                 .foregroundStyle(Flat.textTertiary)
+                .fixedSize(horizontal: false, vertical: true)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(.horizontal, 16)
