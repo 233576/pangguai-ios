@@ -93,8 +93,16 @@ final class PGClient {
     }
 
     /// 扫码得到的机器码 → goodsId。
+    /// 注意：服务端在 token 为空时对该接口回 `code=-1 版本过低，请升级APP后再使用`，
+    /// 与版本号无关，先说清楚再发请求。
     func scan(code: String) async -> PGResponse {
-        await post("/goods/scan/v2", [("NQT", code)])
+        if token.isEmpty {
+            var response = PGResponse()
+            response.body = "{\"code\":-100,\"msg\":\"请先登录后再扫码\"}"
+            response.json = ["code": -100, "msg": "请先登录后再扫码"]
+            return response
+        }
+        return await post("/goods/scan/v2", [("NQT", code)])
     }
 
     func deviceDetail(goodsId: String) async -> PGResponse {
