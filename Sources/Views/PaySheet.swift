@@ -21,6 +21,7 @@ struct PaySheet: View {
     @State private var showingWebPay = false
     @State private var webPayURL: URL?
     @State private var showRaw = false
+    @State private var showParam = false
 
     private var current: PendingPayment { store.pending ?? payment }
     private var payType: Int { current.payType }
@@ -245,6 +246,34 @@ struct PaySheet: View {
             infoRow("支付串", current.prepayParam.isEmpty
                     ? "空（点重新取支付串）"
                     : "\(current.prepayParam.count) 字符")
+            if !current.prepayParam.isEmpty {
+                FlatDivider(inset: 14)
+                Button {
+                    showParam.toggle()
+                } label: {
+                    HStack {
+                        Text(showParam ? "收起支付串" : "查看支付串全文")
+                            .font(.system(size: 12))
+                            .foregroundStyle(Flat.accent)
+                        Spacer()
+                        Image(systemName: showParam ? "chevron.up" : "chevron.down")
+                            .font(.system(size: 10, weight: .semibold))
+                            .foregroundStyle(Flat.textTertiary)
+                    }
+                    .padding(.horizontal, 14)
+                    .padding(.vertical, 10)
+                }
+                .buttonStyle(.plain)
+                if showParam {
+                    Text(current.prepayParam)
+                        .font(.system(size: 10, design: .monospaced))
+                        .foregroundStyle(Flat.textTertiary)
+                        .textSelection(.enabled)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(.horizontal, 14)
+                        .padding(.bottom, 10)
+                }
+            }
             if !store.lastPrepayRaw.isEmpty {
                 FlatDivider(inset: 14)
                 Button {
@@ -377,14 +406,8 @@ struct PaySheet: View {
 
     private func openPayTarget() {
         let plan = handoff
-        if let scheme = plan.scheme {
-            UIApplication.shared.open(scheme, options: [:]) { ok in
-                if !ok {
-                    Task { @MainActor in
-                        alertMessage = "系统不让打开\(PGProtocol.payTitle(payType))。用另一台手机扫上面的二维码，或者点「复制支付串」。"
-                    }
-                }
-            }
+        if !plan.schemes.isEmpty {
+            openSchemes(plan.schemes, index: 0)
             return
         }
         if let web = plan.web {
@@ -394,10 +417,29 @@ struct PaySheet: View {
         }
         if plan.isWechatAppParam {
             UIPasteboard.general.string = current.prepayParam
-            alertMessage = "这是微信 App 支付参数（prepayid 那一套），第三方 App 没有微信 SDK 就调不起来。参数已经复制，可以换余额或换渠道。"
+            alertMessage = "这是微信 App 支付参数，weixin://wap/pay 没被系统接受。参数已复制到剪贴板，"
+                + "可以换余额、换支付宝，或者用另一台手机扫二维码。"
             return
         }
         alertMessage = "没有可用的跳转方式，先用另一台手机扫码吧"
+    }
+
+    /// 依次尝试多个 scheme（微信 wap/pay 有几种字段组合，能通一种就够）。
+    private func openSchemes(_ urls: [URL], index: Int) {
+        guard index < urls.count else {
+            UIPasteboard.general.string = current.prepayParam
+            alertMessage = "系统没有接受任何一个\(PGProtocol.payTitle(payType))跳转链接。"
+                + "支付串已复制到剪贴板；也可以换渠道，或用另一台手机扫码。"
+            return
+        }
+        let url = urls[index]
+        UIApplication.shared.open(url, options: [:]) { ok in
+            if !ok {
+                Task { @MainActor in
+                    openSchemes(urls, index: index + 1)
+                }
+            }
+        }
     }
 
     private func payWithWallet() async {
